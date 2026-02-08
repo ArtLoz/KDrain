@@ -143,11 +143,6 @@ class MainViewModel(
     }
 
     private fun runTestScript() {
-        state.value.selectedBot?.let { bot ->
-            bot.launch {
-                goldScript(bot)
-            }
-        }
     }
 
     private fun loadPlugins() {

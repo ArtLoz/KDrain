@@ -1,6 +1,7 @@
 plugins {
     id("java-library")
     alias(libs.plugins.jetbrainsKotlinJvm)
+    `maven-publish`
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -13,6 +14,8 @@ kotlin {
 
 }
 
+group = libs.versions.sdkGroup.get()
+version = libs.versions.sdkVersion.get()
 dependencies {
-    api("com.github.artloz:bridge-api:1.0.4")
+    api("com.github.ArtLoz.Kbridge:bridge-api:1.0.4")
 }

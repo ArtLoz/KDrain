@@ -25,3 +25,5 @@ tasks.jar {
         }
     }
 }
+group = libs.versions.sdkGroup.get()
+version = libs.versions.sdkVersion.get()

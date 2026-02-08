@@ -1,0 +1,8 @@
+<resources>
+    <string name="select_bot">Select bot</string>
+    <string name="level_label">%1$d Level</string>
+    <string name="no_bot_selected">No bot selected</string>
+    <string name="plugins">Plugins</string>
+    <string name="refresh">Refresh</string>
+    <string name="no_plugins_found">No plugins found</string>
+</resources>

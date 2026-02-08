@@ -17,6 +17,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.l2bot.bridge.models.events.ConnectionStatus
+import kdrain.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.shadow.project.logging.LogController
@@ -70,7 +72,7 @@ fun Controller(modifier: Modifier = Modifier) {
                 modifier = Modifier.weight(1f)
             ) {
                 OutlinedTextField(
-                    value = state.selectedBot?.charName ?: "Выберите бота",
+                    value = state.selectedBot?.charName ?: stringResource(Res.string.select_bot),
                     onValueChange = {},
                     readOnly = true,
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -145,7 +147,7 @@ fun Controller(modifier: Modifier = Modifier) {
                     ) {
                         Text(char.name, style = MaterialTheme.typography.titleMedium)
                         Text(
-                            "${char.level} Уровень",
+                            stringResource(Res.string.level_label, char.level),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -164,7 +166,7 @@ fun Controller(modifier: Modifier = Modifier) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "Бот не выбран",
+                            stringResource(Res.string.no_bot_selected),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -204,13 +206,13 @@ fun PluginSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Плагины",
+                stringResource(Res.string.plugins),
                 style = MaterialTheme.typography.titleSmall
             )
             IconButton(onClick = onRefresh, modifier = Modifier.size(28.dp)) {
                 Icon(
                     Icons.Default.Refresh,
-                    contentDescription = "Обновить",
+                    contentDescription = stringResource(Res.string.refresh),
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -224,7 +226,7 @@ fun PluginSection(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    "Плагины не найдены",
+                    stringResource(Res.string.no_plugins_found),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
