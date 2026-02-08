@@ -8,7 +8,13 @@ kotlin = "2.3.0"
 kotlinx-coroutines = "1.10.2"
 material3 = "1.10.0-alpha05"
 koin = "4.1.1"
-kbridge = "1.0.0"
+kbridge = "1.0.1"
+agp = "9.0.0"
+kotlinStdlib = "2.3.0"
+runner = "1.5.2"
+core = "1.5.0"
+junitVersion = "1.3.0"
+jetbrainsKotlinJvm = "2.3.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -32,9 +38,16 @@ koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", ver
 #kbridge
 kbridge-api-core = { module = "com.github.ArtLoz.Kbridge:bridge-api-core", version.ref = "kbridge" }
 kbridge-transport-jvm = { module = "com.github.ArtLoz.Kbridge:bridge-transport-jvm", version.ref = "kbridge" }
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlinStdlib" }
+androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
+androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 
 [plugins]
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+androidLint = { id = "com.android.lint", version.ref = "agp" }
+jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }

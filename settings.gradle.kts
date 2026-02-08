@@ -25,7 +25,8 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
-        maven { url = uri("https://jitpack.io") }
+            //maven { url = uri("https://jitpack.io") }
+        mavenLocal()
 
     }
 }
@@ -35,3 +36,6 @@ plugins {
 }
 
 include(":composeApp")
+include(":kutils")
+include(":scrydePathEoPlug")
+include(":KDrainPluginApi")
