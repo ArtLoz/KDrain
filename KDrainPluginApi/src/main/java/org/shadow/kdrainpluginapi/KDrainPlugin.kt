@@ -9,4 +9,6 @@ interface KDrainPlugin {
     val description: String
 
     suspend fun onEnable(bot: L2Bot)
+
+    suspend fun onDisable() {}
 }

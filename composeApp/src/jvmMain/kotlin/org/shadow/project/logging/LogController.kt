@@ -6,6 +6,11 @@ import kotlinx.coroutines.flow.update
 import java.time.LocalTime
 
 class LogController {
+
+    companion object {
+        private const val MAX_LOGS = 10_000
+    }
+
     private val _logs = MutableStateFlow<List<LogEntry>>(emptyList())
     val logs = _logs.asStateFlow()
 
@@ -13,7 +18,7 @@ class LogController {
     val enabledTypes = _enabledTypes.asStateFlow()
 
     fun log(type: LogType, message: String) {
-        _logs.update { it + LogEntry(type, message, LocalTime.now()) }
+        _logs.update { (it + LogEntry(type, message, LocalTime.now())).takeLast(MAX_LOGS) }
     }
 
     fun logClientServer(message: String) = log(LogType.CLIENT_SERVER, message)

@@ -1,9 +1,9 @@
-package org.shadow.project.ui.main.old.model
+package org.shadow.project.ui.main.model
 
+import androidx.compose.ui.graphics.Color
 import com.l2bot.bridge.api.L2Bot
 import com.l2bot.bridge.models.entities.L2User
 import org.shadow.project.plugin.PluginInfo
-import org.shadow.project.ui.main.model.PluginsUi
 
 data class MainBotStateIntent(
     val bots: List<L2Bot> = emptyList(),
@@ -12,5 +12,7 @@ data class MainBotStateIntent(
     val plugins: List<PluginInfo> = emptyList(),
     val searchPlugin: String = "",
     val stagedPlugins: List<PluginInfo> = emptyList(),
-    val activePluginsUi: List<PluginsUi> = emptyList()
+    val activePluginsUi: List<PluginsUi> = emptyList(),
+    val libraryPluginsUi: List<PluginsUi> = emptyList(),
+    val botColorMap: Map<String, Color> = emptyMap()
 )

@@ -7,7 +7,12 @@
       "Bash(.gradlew.bat composeApp:compileKotlinJvm)",
       "Bash(jar tf:*)",
       "Bash(xargs cat:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(cd C:\\\\softt\\\\Plug\\\\Space\\\\KDrain:*)",
+      "Bash(find C:\\\\softt\\\\Plug\\\\Space\\\\Kbridge:*)",
+      "Bash(xargs wc:*)",
+      "Bash(./gradlew :scrydePathEoPlug:buildPlugin:*)",
+      "Bash(./gradlew compileKotlinJvm:*)"
     ]
   }
 }

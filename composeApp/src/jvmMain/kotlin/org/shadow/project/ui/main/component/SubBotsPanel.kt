@@ -2,7 +2,6 @@ package org.shadow.project.ui.main.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,9 +21,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.lazy.items
 import com.l2bot.bridge.api.L2Bot
 import com.l2bot.bridge.models.events.ConnectionStatus
-import org.jetbrains.skia.Surface
 import org.shadow.project.ui.theme.AccentBlue
 import org.shadow.project.ui.theme.TextPrimary
 import org.shadow.project.ui.theme.TextSecondary
@@ -33,7 +32,9 @@ import org.shadow.project.ui.theme.TextSecondary
 fun SubBotsPanel(
     activeBot: List<L2Bot>,
     selectedBot: L2Bot?,
+    botColorMap: Map<String, Color>,
     onClick: (L2Bot) -> Unit,
+    onToggleConnection: (L2Bot) -> Unit,
     onClickRefresh: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -79,20 +80,21 @@ fun SubBotsPanel(
             }
             LazyColumn(
                 modifier = Modifier.fillMaxWidth()
-                    .padding(horizontal = 14.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                    .padding(horizontal = 14.dp)
+                    .padding(top = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(activeBot.size, key = { activeBot[it].charName }) {
-                    val connectionState = activeBot[it].connectionStatus.collectAsState().value
-                    Spacer(modifier = Modifier.height(20.dp))
+                items(activeBot, key = { it.charName }) { bot ->
+                    val connectionState = bot.connectionStatus.collectAsState().value
                     SubBotCard(
-                        name = activeBot[it].charName,
+                        name = bot.charName,
                         status = connectionState,
-                        isSelected = activeBot[it] == selectedBot,
-                        onClick = { onClick(activeBot[it]) }
+                        isSelected = bot == selectedBot,
+                        botColor = botColorMap[bot.charName],
+                        onClick = { onClick(bot) },
+                        onToggleConnection = { onToggleConnection(bot) }
                     )
                 }
-
             }
         }
     }
@@ -105,7 +107,9 @@ fun SubBotCard(
     name: String,
     status: ConnectionStatus,
     isSelected: Boolean,
-    onClick: () -> Unit
+    botColor: Color?,
+    onClick: () -> Unit,
+    onToggleConnection: () -> Unit
 ) {
     val color = when (status) {
         ConnectionStatus.CONNECTED -> MaterialTheme.colorScheme.primary
@@ -113,35 +117,46 @@ fun SubBotCard(
         ConnectionStatus.ERROR -> MaterialTheme.colorScheme.error
     }
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(4.dp),
         border = if (isSelected) BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)) else null
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(8.dp).background(color, CircleShape))
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    name,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    modifier = Modifier.weight(1f)
+        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+            // Color indicator strip
+            if (botColor != null) {
+                Box(
+                    modifier = Modifier
+                        .width(3.dp)
+                        .fillMaxHeight()
+                        .background(botColor)
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(status.name, color = color, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    val icon = when (status) {
-                        ConnectionStatus.CONNECTED -> Icons.Default.Stop
-                        else -> Icons.Default.PlayArrow
+            Column(modifier = Modifier.weight(1f).padding(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(modifier = Modifier.size(8.dp).background(color, CircleShape))
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        name,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(status.name, color = color, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        val icon = when (status) {
+                            ConnectionStatus.CONNECTED -> Icons.Default.Stop
+                            else -> Icons.Default.PlayArrow
+                        }
+                        BotSmallButton(icon = icon, onClick = onToggleConnection)
                     }
-                    BotSmallButton(icon = icon, onClick = onClick)
                 }
             }
         }

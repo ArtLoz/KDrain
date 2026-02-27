@@ -19,3 +19,15 @@ val TextPrimary = Color(0xFFECF0F1)   // Основной белый текст
 val TextSecondary = Color(0xFF95A5A6) // Серый текст (ID, описания)
 val TextLogInfo = Color(0xFF5DADE2)   // Голубой текст в логах [INFO]
 val TextLogAct = Color(0xFF58D68D)    // Зеленый текст в логах [ACT]
+
+// Bot color palette — 8 unique colors for bot identification
+val BotColorPalette = listOf(
+    Color(0xFF3498DB), // Blue
+    Color(0xFF2ECC71), // Green
+    Color(0xFFE67E22), // Orange
+    Color(0xFF9B59B6), // Purple
+    Color(0xFFE74C3C), // Red
+    Color(0xFF1ABC9C), // Teal
+    Color(0xFFF39C12), // Amber
+    Color(0xFFE91E63), // Pink
+)

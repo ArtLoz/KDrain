@@ -166,9 +166,9 @@ fun LibraryPanel(
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(plugins) {
+                items(plugins, key = { it.id }) { plugin ->
                     LibraryItem(
-                        plugin = it,
+                        plugin = plugin,
                         onRunPlugin = onRunPlugin,
                         onAddPluginToActive = onAddPluginToActive
                     )
@@ -185,7 +185,9 @@ fun LibraryItem(
     onAddPluginToActive: (PluginsUi) -> Unit
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = RoundedCornerShape(4.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth()

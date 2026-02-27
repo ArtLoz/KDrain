@@ -86,7 +86,7 @@ fun ProfileInfo(user: L2User?) {
                     shape = RoundedCornerShape(4.dp)
                 ) {
                     Text(
-                        text = "LVL ${user?.level}",
+                        text = "LVL ${user?.level ?: "-"}",
                         modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 10.sp,
@@ -158,7 +158,7 @@ fun StatProgressBar(label: String, current: Int, max: Int, color: Color) {
         ) {
 
             LinearProgressIndicator(
-                progress = { current.toFloat() / max },
+                progress = { if (max > 0) current.toFloat() / max else 0f },
                 modifier = Modifier.fillMaxSize(),
                 strokeCap = StrokeCap.Butt,
                 color = color,
@@ -187,7 +187,7 @@ fun StatProgressBarNoLabel(current: Int, max: Int, color: Color) {
             contentAlignment = Alignment.Center
         ) {
             LinearProgressIndicator(
-                progress = { current.toFloat() / max },
+                progress = { if (max > 0) current.toFloat() / max else 0f },
                 modifier = Modifier.fillMaxSize().padding(end = 4.dp),
                 strokeCap = StrokeCap.Butt,
                 color = color,

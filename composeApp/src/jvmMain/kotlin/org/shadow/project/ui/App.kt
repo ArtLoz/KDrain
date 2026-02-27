@@ -24,8 +24,8 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.shadow.project.logging.LogController
 import org.shadow.project.plugin.PluginInfo
 import org.shadow.project.ui.logging.LogView
-import org.shadow.project.ui.main.old.MainViewModel
-import org.shadow.project.ui.main.old.model.MainBotScreenIntent
+import org.shadow.project.ui.main.MainViewModel
+import org.shadow.project.ui.main.model.MainBotScreenIntent
 import org.shadow.project.ui.theme.KDrainTheme
 
 @Composable
@@ -48,75 +48,6 @@ fun App() {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun Controller(modifier: Modifier = Modifier) {
-    val viewModel = koinViewModel<MainViewModel>()
-    val state by viewModel.state.collectAsState()
-    var expanded by remember { mutableStateOf(false) }
-    val connectionState = state.selectedBot?.connectionStatus?.collectAsState(ConnectionStatus.DISCONNECTED)?.value
-
-    Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
-        Surface(
-            shape = MaterialTheme.shapes.small,
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 1.dp,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(10.dp)) {
-                val char = state.charterInfo
-                if (char != null) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(char.name, style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            stringResource(Res.string.level_label, char.level),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    Spacer(Modifier.height(8.dp))
-
-                    StatBar(char.curCp, char.maxCp, Color(0xFFFDD835))
-                    Spacer(Modifier.height(2.dp))
-                    StatBar(char.curHp, char.maxHp, Color(0xFFE53935))
-                    Spacer(Modifier.height(2.dp))
-                    StatBar(char.curMp, char.maxMp, Color(0xFF1E88E5))
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().height(60.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            stringResource(Res.string.no_bot_selected),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-        }
-
-        Spacer(Modifier.height(12.dp))
-
-        PluginSection(
-            plugins = state.plugins,
-            activePlugin = state.activePlugin,
-            isBotConnected = connectionState == ConnectionStatus.CONNECTED,
-            onRefresh = { viewModel.processIntent(MainBotScreenIntent.LoadPlugins) },
-            onRun = { plugin -> viewModel.processIntent(MainBotScreenIntent.RunPlugin(plugin)) },
-            onStop = { viewModel.processIntent(MainBotScreenIntent.StopPlugin) },
-            modifier = Modifier.fillMaxWidth().weight(1f)
-        )
-        Button( onClick = {viewModel.processIntent(MainBotScreenIntent.RunTestScript)}){
-
-    }
-    }
-}
 
 @Composable
 fun PluginSection(
