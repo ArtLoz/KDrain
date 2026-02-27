@@ -24,8 +24,8 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.shadow.project.logging.LogController
 import org.shadow.project.plugin.PluginInfo
 import org.shadow.project.ui.logging.LogView
-import org.shadow.project.ui.main.MainViewModel
-import org.shadow.project.ui.main.model.MainBotScreenIntent
+import org.shadow.project.ui.main.old.MainViewModel
+import org.shadow.project.ui.main.old.model.MainBotScreenIntent
 import org.shadow.project.ui.theme.KDrainTheme
 
 @Composable
@@ -186,6 +186,9 @@ fun Controller(modifier: Modifier = Modifier) {
             onStop = { viewModel.processIntent(MainBotScreenIntent.StopPlugin) },
             modifier = Modifier.fillMaxWidth().weight(1f)
         )
+        Button( onClick = {viewModel.processIntent(MainBotScreenIntent.RunTestScript)}){
+
+    }
     }
 }
 

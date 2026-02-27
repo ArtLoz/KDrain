@@ -5,4 +5,5 @@
     <string name="plugins">Plugins</string>
     <string name="refresh">Refresh</string>
     <string name="no_plugins_found">No plugins found</string>
+    <string name="loc_unknow">Unknow location</string>
 </resources>

@@ -2,14 +2,20 @@ package org.shadow.project.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Grey80 = Color(0xFFD1D1D1)
-val GreyGrey80 = Color(0xFFB0B0B0)
-val DarkGrey80 = Color(0xFF8E8E8E)
 
-val Grey40 = Color(0xFF4A4A4A)
-val GreyGrey40 = Color(0xFF333333)
-val DarkGrey40 = Color(0xFF1F1F1F)
+// Основные фоновые цвета
+val BotBackground = Color(0xFF0E1016) // Самый темный фон окна
+val BotSurface = Color(0xFF161922)    // Цвет карточек/панелей
+val BotSurfaceVariant = Color(0xFF1F232F) // Немного светлее для хедеров или инпутов
 
-val BackgroundGrey = Color(0xFF2C2C2C)
-val SurfaceGrey = Color(0xFF3D3D3D)
-val LogBackground = Color(0xFF242424)
+// Акцентные цвета (Status indicators)
+val AccentGreen = Color(0xFF2ECC71)   // Farming / Running / Info
+val AccentRed = Color(0xFFE74C3C)     // Error / Disconnected / HP Bar
+val AccentBlue = Color(0xFF3498DB)    // MP Bar / Active Count
+val AccentYellow = Color(0xFFF1C40F)  // Warning / Standby
+
+// Текстовые цвета
+val TextPrimary = Color(0xFFECF0F1)   // Основной белый текст
+val TextSecondary = Color(0xFF95A5A6) // Серый текст (ID, описания)
+val TextLogInfo = Color(0xFF5DADE2)   // Голубой текст в логах [INFO]
+val TextLogAct = Color(0xFF58D68D)    // Зеленый текст в логах [ACT]

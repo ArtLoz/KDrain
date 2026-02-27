@@ -1,4 +1,4 @@
-package org.shadow.project.ui.main
+package org.shadow.project.ui.main.old
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,8 +15,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.shadow.project.logging.LogController
 import org.shadow.project.plugin.PluginManager
-import org.shadow.project.ui.main.model.MainBotScreenIntent
-import org.shadow.project.ui.main.model.MainBotStateIntent
+import org.shadow.project.ui.main.old.model.MainBotScreenIntent
+import org.shadow.project.ui.main.old.model.MainBotStateIntent
 
 class MainViewModel(
     private val l2Adrenaline: L2Adrenaline,
@@ -44,8 +44,13 @@ class MainViewModel(
             }
         }
         viewModelScope.launch {
-            pluginManager.activePlugin.collect { active ->
-                _state.update { it.copy(activePlugin = active) }
+            combine(
+                pluginManager.activeBotPlugins,
+                _state.map { it.selectedBot }.distinctUntilChanged()
+            ) { activeBotPlugins, selectedBot ->
+                selectedBot?.let { activeBotPlugins[it]?.pluginName }
+            }.collect { activePlugin ->
+                _state.update { it.copy(activePlugin = activePlugin) }
             }
         }
 
@@ -143,6 +148,15 @@ class MainViewModel(
     }
 
     private fun runTestScript() {
+        viewModelScope.launch {
+            _state.value.selectedBot?.let { bot ->
+                val subBot = bot.getEngineList().firstOrNull()
+                subBot?.let { user ->
+                 bot.on(user.name).moveTo(user.x +200, user.y, user.z)
+                }
+            }
+        }
+
     }
 
     private fun loadPlugins() {
@@ -158,6 +172,8 @@ class MainViewModel(
     }
 
     private fun stopPlugin() {
-        pluginManager.stopActivePlugin()
+        state.value.selectedBot?.let { bot ->
+            pluginManager.stopPlugin(bot)
+        }
     }
 }

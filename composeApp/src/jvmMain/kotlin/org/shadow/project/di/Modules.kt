@@ -9,7 +9,7 @@ import org.koin.dsl.module
 import org.shadow.project.WindowController
 import org.shadow.project.logging.LogController
 import org.shadow.project.plugin.PluginManager
-import org.shadow.project.ui.main.MainViewModel
+import org.shadow.project.ui.main.old.MainViewModel
 
 val controllerModules = module {
     singleOf(::WindowController)

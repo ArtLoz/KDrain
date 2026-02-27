@@ -1,4 +1,4 @@
-package org.shadow.project.ui.main.model
+package org.shadow.project.ui.main.old.model
 
 import com.l2bot.bridge.api.L2Bot
 import org.shadow.project.plugin.PluginInfo

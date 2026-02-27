@@ -17,10 +17,13 @@ class PluginManager {
     private val _plugins = MutableStateFlow<List<PluginInfo>>(emptyList())
     val plugins = _plugins.asStateFlow()
 
-    private val _activePlugin = MutableStateFlow<String?>(null)
-    val activePlugin = _activePlugin.asStateFlow()
+    private val _activeBotPlugins = MutableStateFlow<Map<L2Bot, ActivePluginEntry>>(emptyMap())
+    val activeBotPlugins = _activeBotPlugins.asStateFlow()
 
-    private var activeJob: Job? = null
+    data class ActivePluginEntry(
+        val pluginName: String,
+        val job: Job
+    )
 
     fun loadPlugins() {
         if (!pluginsDir.exists() || !pluginsDir.isDirectory) {
@@ -34,16 +37,10 @@ class PluginManager {
 
         for (jar in jarFiles) {
             try {
-                val plugins = discoverPlugins(jar)
-                for (plugin in plugins) {
-                    loaded.add(
-                        PluginInfo(
-                            name = "${jar.nameWithoutExtension}:${plugin::class.simpleName}",
-                            instance = plugin,
-                            jarFile = jar
-                        )
-                    )
-                    println("[PluginManager] Loaded: ${jar.name} -> ${plugin::class.qualifiedName}")
+                val discovered = discoverPluginClasses(jar)
+                for (pluginInfo in discovered) {
+                    loaded.add(pluginInfo)
+                    println("[PluginManager] Loaded: ${jar.name} -> ${pluginInfo.name} v${pluginInfo.version}")
                 }
             } catch (e: Exception) {
                 println("[PluginManager] Failed to load ${jar.name}: ${e.message}")
@@ -55,12 +52,13 @@ class PluginManager {
         println("[PluginManager] Total plugins loaded: ${loaded.size}")
     }
 
-    private fun discoverPlugins(jarFile: File): List<KDrainPlugin> {
+    @Suppress("UNCHECKED_CAST")
+    private fun discoverPluginClasses(jarFile: File): List<PluginInfo> {
         val classLoader = URLClassLoader(
             arrayOf(jarFile.toURI().toURL()),
             this::class.java.classLoader
         )
-        val plugins = mutableListOf<KDrainPlugin>()
+        val result = mutableListOf<PluginInfo>()
 
         JarFile(jarFile).use { jar ->
             val entries = jar.entries()
@@ -75,8 +73,19 @@ class PluginManager {
                 try {
                     val clazz = classLoader.loadClass(className)
                     if (KDrainPlugin::class.java.isAssignableFrom(clazz) && !clazz.isInterface) {
-                        val instance = clazz.getDeclaredConstructor().newInstance() as KDrainPlugin
-                        plugins.add(instance)
+                        val pluginClass = clazz as Class<out KDrainPlugin>
+                        val instance = pluginClass.getDeclaredConstructor().newInstance()
+
+                        result.add(
+                            PluginInfo(
+                                name = instance.name,
+                                version = instance.version,
+                                author = instance.author,
+                                description = instance.description,
+                                pluginClass = pluginClass,
+                                jarFile = jarFile
+                            )
+                        )
                     }
                 } catch (_: Exception) {
                     // Skip classes that can't be loaded
@@ -84,33 +93,38 @@ class PluginManager {
             }
         }
 
-        return plugins
+        return result
     }
 
     fun runPlugin(plugin: PluginInfo, bot: L2Bot, scope: CoroutineScope) {
-        stopActivePlugin()
+        stopPlugin(bot)
 
-        activeJob = scope.launch(Dispatchers.IO) {
+        val instance = plugin.createInstance()
+
+        val job = scope.launch(Dispatchers.IO) {
             try {
-                _activePlugin.value = plugin.name
-                println("[PluginManager] Running plugin: ${plugin.name}")
-                plugin.instance.onEnable(bot)
+                println("[PluginManager] Running plugin: ${plugin.name} for bot: ${bot.charName}")
+                instance.onEnable(bot)
             } catch (e: CancellationException) {
-                println("[PluginManager] Plugin cancelled: ${plugin.name}")
+                println("[PluginManager] Plugin cancelled: ${plugin.name} for bot: ${bot.charName}")
             } catch (e: Exception) {
                 println("[PluginManager] Plugin error ${plugin.name}: ${e.message}")
                 e.printStackTrace()
             } finally {
-                activeJob = null
-                _activePlugin.value = null
-                println("[PluginManager] Plugin finished: ${plugin.name}")
+                _activeBotPlugins.update { it - bot }
+                println("[PluginManager] Plugin finished: ${plugin.name} for bot: ${bot.charName}")
             }
         }
+
+        _activeBotPlugins.update { it + (bot to ActivePluginEntry(plugin.name, job)) }
     }
 
-    fun stopActivePlugin() {
-        activeJob?.cancel()
-        activeJob = null
-        _activePlugin.value = null
+    fun stopPlugin(bot: L2Bot) {
+        _activeBotPlugins.value[bot]?.job?.cancel()
+        _activeBotPlugins.update { it - bot }
+    }
+
+    fun getActivePluginFor(bot: L2Bot): String? {
+        return _activeBotPlugins.value[bot]?.pluginName
     }
 }

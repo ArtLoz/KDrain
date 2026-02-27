@@ -1,0 +1,9 @@
+package org.shadow.project.ui.main
+
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+
+@Composable
+fun KDrainMain(modifier: Modifier = Modifier){
+
+}
