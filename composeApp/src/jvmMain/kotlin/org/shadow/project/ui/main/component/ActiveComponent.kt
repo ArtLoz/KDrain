@@ -74,6 +74,8 @@ fun ActiveScriptsPanel(
                     ScriptCard(
                         name = plugin.name,
                         statusDetail = plugin.details,
+                        version = plugin.pluginInfo.version,
+                        author = plugin.pluginInfo.author,
                         icon = Icons.Default.AdsClick,
                         isActive = plugin.active,
                         onClickChangeStatus = { onChangeStatusPlugin(plugin) },
@@ -89,6 +91,8 @@ fun ActiveScriptsPanel(
 fun ScriptCard(
     name: String,
     statusDetail: String?,
+    version: String,
+    author: String,
     icon: ImageVector,
     isActive: Boolean,
     onClickChangeStatus: () -> Unit,
@@ -128,7 +132,13 @@ fun ScriptCard(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "v$version by $author",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    fontSize = 10.sp,
+                    modifier = Modifier.padding(top = 1.dp)
+                )
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
                     Box(modifier = Modifier.size(6.dp).background(statusColor, CircleShape))
                     Spacer(modifier = Modifier.width(6.dp))
                     val status = if (isActive) "Running" else "Stopped"
@@ -138,12 +148,14 @@ fun ScriptCard(
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Black
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        statusDetail ?: "",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 10.sp
-                    )
+                    if (!statusDetail.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            statusDetail,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 10.sp
+                        )
+                    }
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {

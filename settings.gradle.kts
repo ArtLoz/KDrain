@@ -26,8 +26,8 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
-        //maven { url = uri("https://jitpack.io") }
-        mavenLocal()
+        maven { url = uri("https://jitpack.io") }
+        //mavenLocal()
 
     }
 }

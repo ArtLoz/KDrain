@@ -38,7 +38,7 @@ fun App() {
             modifier = Modifier.fillMaxSize()
                 .background(color = MaterialTheme.colorScheme.background)
         ) {
-            Controller(modifier = Modifier.weight(1f))
+           // Controller(modifier = Modifier.weight(1f))
             InfoBlock(
                 logController = logController,
                 modifier = Modifier.weight(1f)
@@ -57,80 +57,6 @@ fun Controller(modifier: Modifier = Modifier) {
     val connectionState = state.selectedBot?.connectionStatus?.collectAsState(ConnectionStatus.DISCONNECTED)?.value
 
     Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth()
-                .height(IntrinsicSize.Max),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = {
-                    expanded = it
-                    if (it) viewModel.processIntent(MainBotScreenIntent.LoadBots)
-                },
-                modifier = Modifier.weight(1f)
-            ) {
-                OutlinedTextField(
-                    value = state.selectedBot?.charName ?: stringResource(Res.string.select_bot),
-                    onValueChange = {},
-                    readOnly = true,
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                    modifier = Modifier.menuAnchor(
-                        type = ExposedDropdownMenuAnchorType.PrimaryEditable
-                    ).fillMaxWidth(),
-                    textStyle = MaterialTheme.typography.bodyMedium
-                )
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    state.bots.forEach { bot ->
-                        DropdownMenuItem(
-                            text = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Canvas(modifier = Modifier.size(6.dp)) {
-                                         drawCircle(if (bot.connectionStatus.value == ConnectionStatus.CONNECTED) Color.Green else Color.Gray)
-                                    }
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(bot.charName, style = MaterialTheme.typography.bodySmall)
-                                }
-                            },
-                            onClick = {
-                                viewModel.processIntent(MainBotScreenIntent.SelectBot(bot))
-                                expanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            Button(
-                onClick = {
-                    state.selectedBot?.let {
-                        viewModel.processIntent(MainBotScreenIntent.ToggleConnection)
-                    }
-                },
-                enabled = state.selectedBot != null,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (connectionState == ConnectionStatus.CONNECTED) Color(
-                        0xBF4CAF50
-                    ) else MaterialTheme.colorScheme.primary
-                ),
-                modifier = Modifier.fillMaxHeight(),
-                contentPadding = PaddingValues(0.dp),
-                shape = RoundedCornerShape(4.dp)
-            ) {
-                Text(
-                    text = if (connectionState == ConnectionStatus.CONNECTED) "ON" else "OFF",
-                    style = MaterialTheme.typography.labelMedium
-                )
-            }
-        }
-
-        Spacer(Modifier.height(12.dp))
-
         Surface(
             shape = MaterialTheme.shapes.small,
             color = MaterialTheme.colorScheme.surface,

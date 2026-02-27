@@ -6,7 +6,8 @@
       "Bash(unzip:*)",
       "Bash(.gradlew.bat composeApp:compileKotlinJvm)",
       "Bash(jar tf:*)",
-      "Bash(xargs cat:*)"
+      "Bash(xargs cat:*)",
+      "Bash(find:*)"
     ]
   }
 }

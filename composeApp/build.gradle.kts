@@ -25,10 +25,10 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
-//            implementation(libs.kbridge.api.core)
-//            implementation(libs.kbridge.transport.jvm)
-            implementation("com.github.artloz:bridge-api-core:1.0.4")
-            implementation("com.github.artloz:bridge-transport-jvm:1.0.4")
+            implementation(libs.kbridge.api.core)
+            implementation(libs.kbridge.transport.jvm)
+//            implementation("com.github.artloz:bridge-api-core:1.0.4")
+//            implementation("com.github.artloz:bridge-transport-jvm:1.0.4")
             implementation(project(":kutils"))
             implementation(project(":KDrainPluginApi"))
         }
@@ -57,6 +57,7 @@ compose.desktop {
                 version = pkgVersion
                 dirChooser = true
                 menuGroup = appName
+                iconFile.set(rootProject.file("win_kdarin.ico"))
             }
         }
     }

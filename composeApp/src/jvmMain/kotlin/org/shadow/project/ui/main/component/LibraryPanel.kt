@@ -30,7 +30,9 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import org.shadow.project.ui.main.model.PluginsUi
+import org.shadow.project.ui.theme.AccentBlue
 
 @Composable
 fun QualitySearchBar(
@@ -116,6 +118,7 @@ fun LibraryPanel(
     plugins: List<PluginsUi>,
     onRunPlugin: (PluginsUi) -> Unit,
     onAddPluginToActive: (PluginsUi) -> Unit,
+    onClickRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -131,13 +134,28 @@ fun LibraryPanel(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
-                    Text(
-                        text = "LIBRARY",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Black,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
+                    Row {
+                        Text(
+                            text = "LIBRARY",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Black,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Surface(
+                            color = AccentBlue.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(4.dp),
+                            modifier = Modifier.clickable(onClick = onClickRefresh)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(2.dp)
+                            )
+                        }
+                    }
                     QualitySearchBar(
                         value = searchPlugin,
                         onValueChange = onSearchPluginChange,
@@ -187,11 +205,19 @@ fun LibraryItem(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = plugin.details ?: "",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 11.sp,
+                    text = "v${plugin.pluginInfo.version} by ${plugin.pluginInfo.author}",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    fontSize = 10.sp,
                     modifier = Modifier.padding(top = 2.dp)
                 )
+                if (!plugin.details.isNullOrBlank()) {
+                    Text(
+                        text = plugin.details,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
             }
             ActionIconButton(icon = Icons.Default.PlayArrow, onClick = { onRunPlugin(plugin) })
             ActionIconButton(icon = Icons.Default.Add, onClick = { onAddPluginToActive(plugin) })

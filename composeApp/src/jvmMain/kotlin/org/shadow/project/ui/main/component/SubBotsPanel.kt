@@ -3,12 +3,14 @@ package org.shadow.project.ui.main.component
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -22,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.l2bot.bridge.api.L2Bot
 import com.l2bot.bridge.models.events.ConnectionStatus
+import org.jetbrains.skia.Surface
 import org.shadow.project.ui.theme.AccentBlue
 import org.shadow.project.ui.theme.TextPrimary
 import org.shadow.project.ui.theme.TextSecondary
@@ -31,23 +34,39 @@ fun SubBotsPanel(
     activeBot: List<L2Bot>,
     selectedBot: L2Bot?,
     onClick: (L2Bot) -> Unit,
-    modifier: Modifier = Modifier
+    onClickRefresh: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
         shape = RoundedCornerShape(8.dp),
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation =0.dp,
+        tonalElevation = 0.dp,
         modifier = modifier.fillMaxHeight()
     ) {
-        Column{
+        Column {
 
             Row(
                 modifier = Modifier.fillMaxWidth()
                     .background(color = MaterialTheme.colorScheme.surfaceVariant)
                     .padding(14.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text("BOTS", color = TextSecondary, fontWeight = FontWeight.Black, fontSize = 12.sp)
+
+
+                Spacer(modifier = Modifier.weight(1f))
+                Surface(
+                    color = AccentBlue.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier.clickable(onClick = onClickRefresh)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(2.dp)
+                    )
+                }
                 Surface(color = AccentBlue.copy(alpha = 0.2f), shape = RoundedCornerShape(4.dp)) {
                     Text(
                         "${activeBot.size} Active",

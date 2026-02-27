@@ -17,13 +17,12 @@ dependencies{
     compileOnly(project(":KDrainPluginApi"))
 }
 
-tasks.jar {
-    doLast {
-        copy {
-            from(archiveFile)
-            into("${rootProject.projectDir}/app/plugins/")
-        }
-    }
+tasks.register<Copy>("buildPlugin") {
+    group = "kdrain"
+    description = "Build plugin JAR and copy to app/plugins"
+    dependsOn(tasks.jar)
+    from(tasks.jar.map { it.archiveFile })
+    into("${rootProject.projectDir}/app/plugins/")
 }
 group = libs.versions.sdkGroup.get()
 version = libs.versions.sdkVersion.get()
