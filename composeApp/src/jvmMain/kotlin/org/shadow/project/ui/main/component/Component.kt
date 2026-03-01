@@ -22,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
 import androidx.compose.ui.tooling.preview.Preview
 import com.l2bot.bridge.models.entities.L2User
 import com.l2bot.bridge.models.events.ConnectionStatus
@@ -31,6 +32,8 @@ import kdrain.composeapp.generated.resources.no_bot_selected
 import org.jetbrains.compose.resources.stringResource
 import org.shadow.project.ui.main.KDrainMain
 import org.shadow.project.ui.theme.KDrainTheme
+
+private fun Number.rounded(): Int = toDouble().roundToInt()
 
 @Composable
 fun CharacterStatusBar(
@@ -118,20 +121,20 @@ fun StatsBars(modifier: Modifier = Modifier, user: L2User?) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
 
         StatProgressBarNoLabel(
-            current = user?.curCp?.toInt() ?: 0,
-            max = user?.maxCp?.toInt() ?: 0,
+            current = user?.curCp?.rounded() ?: 0,
+            max = user?.maxCp?.rounded() ?: 0,
             color = MaterialTheme.colorScheme.tertiary
         )
         StatProgressBar(
             label = "HP",
-            current = user?.curHp?.toInt() ?: 0,
-            max = user?.maxHp?.toInt() ?: 0,
+            current = user?.curHp?.rounded() ?: 0,
+            max = user?.maxHp?.rounded() ?: 0,
             color = MaterialTheme.colorScheme.error
         )
         StatProgressBar(
             label = "MP",
-            current = user?.curMp?.toInt() ?: 0,
-            max = user?.maxMp?.toInt() ?: 0,
+            current = user?.curMp?.rounded() ?: 0,
+            max = user?.maxMp?.rounded() ?: 0,
             color = MaterialTheme.colorScheme.secondary
         )
     }
@@ -158,7 +161,7 @@ fun StatProgressBar(label: String, current: Int, max: Int, color: Color) {
         ) {
 
             LinearProgressIndicator(
-                progress = { if (max > 0) current.toFloat() / max else 0f },
+                progress = { if (max > 0) (current.toFloat() / max).coerceIn(0f, 1f) else 0f },
                 modifier = Modifier.fillMaxSize(),
                 strokeCap = StrokeCap.Butt,
                 color = color,
@@ -187,7 +190,7 @@ fun StatProgressBarNoLabel(current: Int, max: Int, color: Color) {
             contentAlignment = Alignment.Center
         ) {
             LinearProgressIndicator(
-                progress = { if (max > 0) current.toFloat() / max else 0f },
+                progress = { if (max > 0) (current.toFloat() / max).coerceIn(0f, 1f) else 0f },
                 modifier = Modifier.fillMaxSize().padding(end = 4.dp),
                 strokeCap = StrokeCap.Butt,
                 color = color,

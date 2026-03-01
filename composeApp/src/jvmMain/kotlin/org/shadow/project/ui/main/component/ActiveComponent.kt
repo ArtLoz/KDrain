@@ -79,7 +79,6 @@ fun ActiveScriptsPanel(
                     ScriptCard(
                         name = plugin.name,
                         folderName = plugin.folderName,
-                        statusDetail = plugin.details,
                         version = plugin.pluginInfo.version,
                         author = plugin.pluginInfo.author,
                         icon = Icons.Default.AdsClick,
@@ -99,7 +98,6 @@ fun ActiveScriptsPanel(
 fun ScriptCard(
     name: String,
     folderName: String? = null,
-    statusDetail: String?,
     version: String,
     author: String,
     icon: ImageVector,

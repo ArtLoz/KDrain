@@ -8,6 +8,12 @@ interface KDrainPlugin {
     val author: String
     val description: String
 
+    var onLog: ((tag: String, message: String) -> Unit)?
+
+    fun log(tag: String, message: String) {
+        onLog?.invoke(tag, message)
+    }
+
     suspend fun onEnable(bot: L2Bot)
 
     suspend fun onDisable() {}

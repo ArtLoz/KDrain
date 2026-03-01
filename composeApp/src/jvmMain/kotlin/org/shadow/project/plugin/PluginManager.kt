@@ -6,13 +6,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.shadow.kdrainpluginapi.KDrainPlugin
+import org.shadow.project.logging.LogController
 import java.io.File
 import java.net.URLClassLoader
 import java.util.jar.JarFile
 
 data class PluginRunKey(val pluginId: String, val botCharName: String)
 
-class PluginManager {
+class PluginManager(private val logController: LogController) {
 
     private val pluginsDir = File(System.getProperty("user.dir"), "app/plugins")
 
@@ -21,6 +22,9 @@ class PluginManager {
 
     private val _activePlugins = MutableStateFlow<Map<PluginRunKey, ActivePluginEntry>>(emptyMap())
     val activePlugins = _activePlugins.asStateFlow()
+
+    /** Tracked classloaders — lifecycle managed here, not in PluginInfo */
+    private val classLoaders = mutableListOf<URLClassLoader>()
 
     data class ActivePluginEntry(
         val pluginId: String,
@@ -37,8 +41,14 @@ class PluginManager {
             return
         }
 
-        // Close old classloaders before reloading
-        _plugins.value.forEach { it.close() }
+        // Stop all active plugins before closing classloaders
+        stopAll()
+
+        // Close old classloaders safely (no active plugins reference them now)
+        classLoaders.forEach { cl ->
+            try { cl.close() } catch (_: Exception) {}
+        }
+        classLoaders.clear()
 
         val loaded = mutableListOf<PluginInfo>()
 
@@ -91,7 +101,6 @@ class PluginManager {
                     if (KDrainPlugin::class.java.isAssignableFrom(clazz) && !clazz.isInterface) {
                         val pluginClass = clazz as Class<out KDrainPlugin>
                         val instance = pluginClass.getDeclaredConstructor().newInstance()
-
                         result.add(
                             PluginInfo(
                                 name = instance.name,
@@ -115,9 +124,10 @@ class PluginManager {
             }
         }
 
-        // If no plugins found in this JAR, close the classloader
         if (result.isEmpty()) {
             classLoader.close()
+        } else {
+            classLoaders.add(classLoader)
         }
 
         return result
@@ -134,9 +144,13 @@ class PluginManager {
             return
         }
 
-        val job = scope.launch(Dispatchers.IO) {
+        // Use LAZY start: register entry BEFORE starting to avoid race condition
+        val job = scope.launch(Dispatchers.IO, start = CoroutineStart.LAZY) {
             try {
                 println("[PluginManager] Running plugin: ${plugin.name} for bot: ${bot.charName}")
+                instance.onLog = { tag, msg ->
+                    logController.logPlugin(bot.charName, "[${plugin.name}][$tag] $msg")
+                }
                 instance.onEnable(bot)
             } catch (e: CancellationException) {
                 println("[PluginManager] Plugin cancelled: ${plugin.name} for bot: ${bot.charName}")
@@ -145,7 +159,10 @@ class PluginManager {
                 System.err.println("[PluginManager] Plugin error ${plugin.name}: ${e.message}")
             } finally {
                 try { instance.onDisable() } catch (_: Exception) {}
-                _activePlugins.update { it - key }
+                // Only remove if this entry is still ours (not replaced by a re-run)
+                _activePlugins.update { map ->
+                    if (map[key]?.instance === instance) map - key else map
+                }
                 println("[PluginManager] Plugin finished: ${plugin.name} for bot: ${bot.charName}")
             }
         }
@@ -153,6 +170,7 @@ class PluginManager {
         _activePlugins.update {
             it + (key to ActivePluginEntry(plugin.id, bot, plugin.name, job, instance))
         }
+        job.start()
     }
 
     fun stopPlugin(pluginId: String, bot: L2Bot) {

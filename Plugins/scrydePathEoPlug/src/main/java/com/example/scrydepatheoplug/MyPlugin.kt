@@ -8,6 +8,7 @@ class MyPlugin : KDrainPlugin {
     override val version = "1.0.0"
     override val author = "Shadow"
     override val description = "Scryde path bot plugin"
+    override var onLog: ((tag: String, message: String) -> Unit)? = null
 
     override suspend fun onEnable(bot: L2Bot) {
         scriptRun(bot)

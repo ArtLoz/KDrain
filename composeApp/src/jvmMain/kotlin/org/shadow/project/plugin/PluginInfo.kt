@@ -1,11 +1,10 @@
 package org.shadow.project.plugin
 
 import org.shadow.kdrainpluginapi.KDrainPlugin
-import java.io.Closeable
 import java.io.File
 import java.net.URLClassLoader
 
-data class PluginInfo(
+class PluginInfo(
     val name: String,
     val version: String,
     val author: String,
@@ -14,7 +13,7 @@ data class PluginInfo(
     val jarFile: File,
     val classLoader: URLClassLoader,
     val folderName: String? = null
-) : Closeable {
+) {
     val id: String = if (folderName != null) "$folderName:$name:$version" else "$name:$version"
     val displayName: String = if (folderName != null) "$name ($folderName)" else name
 
@@ -26,7 +25,7 @@ data class PluginInfo(
             null
         }
 
-    override fun close() {
-        classLoader.close()
-    }
+    override fun equals(other: Any?): Boolean = other is PluginInfo && id == other.id
+    override fun hashCode(): Int = id.hashCode()
+    override fun toString(): String = "PluginInfo($id)"
 }

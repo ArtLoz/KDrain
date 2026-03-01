@@ -12,7 +12,7 @@ private const val SS_THRESHOLD = 300
 class FarmBot(
     val bot: L2Bot,
     val zone: FarmZone,
-    private val pluginName: String,
+    val log: (tag: String, message: String) -> Unit,
     private val buffId: Int,
     private val soeId: Int,
     private val ssId: Int,
@@ -21,8 +21,6 @@ class FarmBot(
 ) {
 
     val town: TownLocation get() = zone.town
-
-    fun log(tag: String, msg: String) = println("[$pluginName][$tag] $msg")
 
     // ---- Status ----
 
@@ -163,7 +161,7 @@ class FarmBot(
 
     // ---- Zone loading ----
 
-    suspend fun loadZone() {
+    suspend fun loadZone(pluginName: String) {
         val cl = MyPlugin::class.java.classLoader
         val zonePath = ResourceHelper.extractPluginResource(cl, zone.zoneFile, pluginName)
         bot.loadZone(zonePath)

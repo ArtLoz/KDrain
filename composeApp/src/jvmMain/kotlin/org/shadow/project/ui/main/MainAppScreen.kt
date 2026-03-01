@@ -15,6 +15,9 @@ import androidx.compose.ui.unit.dp
 import com.l2bot.bridge.models.events.ConnectionStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.compose.koinInject
+import org.shadow.project.logging.LogController
+import org.shadow.project.ui.logging.LogView
 import org.shadow.project.ui.main.component.ActiveScriptsPanel
 import org.shadow.project.ui.main.component.CharacterStatusBar
 import org.shadow.project.ui.main.component.LibraryPanel
@@ -26,6 +29,7 @@ import org.shadow.project.ui.theme.KDrainTheme
 fun KDrainMain(modifier: Modifier = Modifier){
     val viewModel = koinViewModel<MainViewModel>()
     val state by viewModel.state.collectAsState()
+    val logController = koinInject<LogController>()
     val disconnectedFlow = remember { MutableStateFlow(ConnectionStatus.DISCONNECTED) }
     val connectionStatus = (state.selectedBot?.connectionStatus ?: disconnectedFlow).collectAsState().value
 
@@ -60,7 +64,12 @@ fun KDrainMain(modifier: Modifier = Modifier){
                                 viewModel.processIntent(MainBotScreenIntent.StopPluginOnBot(pluginId, botName))
                             },
                             stopAllPlugins = { viewModel.processIntent(MainBotScreenIntent.StopAllPlugins) },
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.weight(2f).padding(horizontal = 8.dp)
+                        )
+                        LogView(
+                            controller = logController,
+                            botName = state.selectedBot?.charName,
+                            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
                         )
                     }
                     LibraryPanel(

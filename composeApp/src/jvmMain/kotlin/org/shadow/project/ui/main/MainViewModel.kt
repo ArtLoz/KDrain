@@ -9,6 +9,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,7 +41,7 @@ class MainViewModel(
     val state = _state.asStateFlow()
 
     // Per-bot pipe drain jobs — keep pipes alive for ALL connected bots
-    private val botCollectorJobs = mutableMapOf<String, Job>()
+    private val botCollectorJobs = ConcurrentHashMap<String, Job>()
 
     // User polling — only for the selected bot
     private var userPollingJob: Job? = null
@@ -53,7 +54,7 @@ class MainViewModel(
                 handleIntent(intent)
             }
         }
-        handleIntent(MainBotScreenIntent.LoadBots)
+        _intents.trySend(MainBotScreenIntent.LoadBots)
 
         viewModelScope.launch {
             pluginManager.plugins.collect { plugins ->
@@ -126,7 +127,7 @@ class MainViewModel(
             }
         }
 
-        handleIntent(MainBotScreenIntent.LoadPlugins)
+        _intents.trySend(MainBotScreenIntent.LoadPlugins)
     }
 
     override fun onCleared() {
@@ -151,52 +152,44 @@ class MainViewModel(
                 launch(Dispatchers.IO) {
                     try {
                         bot.errors.collectLatest {
-                            if (_state.value.selectedBot?.charName == bot.charName) {
-                                logController.logError(it.message ?: "Unknown")
-                            }
+                            logController.logError(bot.charName, it.message ?: "Unknown")
                         }
                     } catch (_: CancellationException) { throw CancellationException()
                     } catch (e: Exception) {
-                        logController.logError("Error collector failed: ${e.message}")
+                        logController.logError(bot.charName, "Error collector failed: ${e.message}")
                     }
                 }
 
                 launch(Dispatchers.IO) {
                     try {
                         bot.actionEvents.collectLatest {
-                            if (_state.value.selectedBot?.charName == bot.charName) {
-                                logController.logAction("${it.action.name} ${it.p1} ${it.p2}")
-                            }
+                            logController.logAction(bot.charName, "${it.action.name} ${it.p1} ${it.p2}")
                         }
                     } catch (_: CancellationException) { throw CancellationException()
                     } catch (e: Exception) {
-                        logController.logError("Action collector failed: ${e.message}")
+                        logController.logError(bot.charName, "Action collector failed: ${e.message}")
                     }
                 }
 
                 launch(Dispatchers.IO) {
                     try {
                         bot.packetEvents.collectLatest {
-                            if (_state.value.selectedBot?.charName == bot.charName) {
-                                logController.logServerClient("${it.header} ${it.data}")
-                            }
+                            logController.logServerClient(bot.charName, "${it.header} ${it.data}")
                         }
                     } catch (_: CancellationException) { throw CancellationException()
                     } catch (e: Exception) {
-                        logController.logError("Packet collector failed: ${e.message}")
+                        logController.logError(bot.charName, "Packet collector failed: ${e.message}")
                     }
                 }
 
                 launch(Dispatchers.IO) {
                     try {
                         bot.cliPacketEvents.collectLatest {
-                            if (_state.value.selectedBot?.charName == bot.charName) {
-                                logController.logClientServer("${it.header} ${it.data}")
-                            }
+                            logController.logClientServer(bot.charName, "${it.header} ${it.data}")
                         }
                     } catch (_: CancellationException) { throw CancellationException()
                     } catch (e: Exception) {
-                        logController.logError("CliPacket collector failed: ${e.message}")
+                        logController.logError(bot.charName, "CliPacket collector failed: ${e.message}")
                     }
                 }
             }
@@ -222,7 +215,7 @@ class MainViewModel(
                     _state.update { it.copy(user = user) }
                 } catch (_: CancellationException) { throw CancellationException()
                 } catch (e: Exception) {
-                    logController.logError("User poll failed: ${e.message}")
+                    logController.logError(bot.charName, "User poll failed: ${e.message}")
                 }
                 delay(5000L)
             }
@@ -280,18 +273,17 @@ class MainViewModel(
     }
 
     private fun toggleConnection() {
+        val bot = state.value.selectedBot ?: return
         viewModelScope.launch(Dispatchers.IO) {
-            state.value.selectedBot?.let { bot ->
-                if (bot.connectionStatus.value == ConnectionStatus.DISCONNECTED) {
-                    bot.connect()
-                    ensureBotCollectors(bot)
-                    startUserPolling(bot)
-                } else {
-                    bot.disconnect()
-                    stopBotCollectors(bot)
-                    userPollingJob?.cancel()
-                    userPollingJob = null
-                }
+            if (bot.connectionStatus.value == ConnectionStatus.DISCONNECTED) {
+                bot.connect()
+                ensureBotCollectors(bot)
+                startUserPolling(bot)
+            } else {
+                bot.disconnect()
+                stopBotCollectors(bot)
+                userPollingJob?.cancel()
+                userPollingJob = null
             }
         }
     }

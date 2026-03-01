@@ -20,7 +20,8 @@
       "Bash(./gradlew :kutils:compileKotlin:*)",
       "Bash(./gradlew :composeApp:compileKotlinJvm:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(jar xf:*)"
+      "Bash(jar xf:*)",
+      "Bash(./gradlew composeApp:compileKotlinJvm:*)"
     ]
   }
 }

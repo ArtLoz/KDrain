@@ -9,7 +9,7 @@ import kotlinx.coroutines.delay
 
 private const val PLUGIN_NAME = "SimpleFarm"
 
-suspend fun scriptRun(bot: L2Bot) {
+suspend fun scriptRun(bot: L2Bot, log: (String, String) -> Unit) {
     val config = PluginConfig.load(MyPlugin::class.java, PLUGIN_NAME)
 
     val buffId = config.getInt("buffId", 4328)
@@ -24,7 +24,7 @@ suspend fun scriptRun(bot: L2Bot) {
     val farm = FarmBot(
         bot = bot,
         zone = zone,
-        pluginName = PLUGIN_NAME,
+        log = log,
         buffId = buffId,
         soeId = soeId,
         ssId = ssId,
@@ -33,11 +33,11 @@ suspend fun scriptRun(bot: L2Bot) {
     )
 
     bot.gps.loadBase(ResourceHelper.getDatabasePath())
-    farm.log("init", "GPS loaded, town=${zone.town::class.simpleName}, zone=${zone.name}")
+    log("init", "GPS loaded, town=${zone.town::class.simpleName}, zone=${zone.name}")
 
     coroutineScope {
     // Captcha handler runs in background
-    launchCaptchaHandler(bot, farm::log)
+    launchCaptchaHandler(bot, log)
 
     // ---- Main loop ----
     var faceControlOn = false
@@ -112,7 +112,7 @@ suspend fun scriptRun(bot: L2Bot) {
         // All good -> enable face control if not already
         if (!faceControlOn) {
             farm.log("spot", "loading zone and starting farm")
-            farm.loadZone()
+            farm.loadZone(PLUGIN_NAME)
             bot.setFaceControl(0, true)
             faceControlOn = true
         }
@@ -135,5 +135,6 @@ private fun resolveFarmZone(name: String): FarmZone? = when (name) {
     "Oren46to51Second" -> Oren46to51Second
     "Oren46to51Three" -> Oren46to51Three
     "HvZone40to46" -> HvZone40to46
+    "Oren46to51Four" ->Oren46to51Four
     else -> null
 }
