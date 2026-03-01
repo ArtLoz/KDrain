@@ -1,26 +1,28 @@
 plugins {
     id("java-library")
     kotlin("jvm") version "2.3.0"
-    `maven-publish`
 }
-
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 }
-
 kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
-dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-    implementation("com.github.ArtLoz.Kbridge:bridge-api-models:1.0.4")
-    implementation("com.github.ArtLoz.Kbridge:bridge-api-core:1.0.4")
-    implementation("org.xerial:sqlite-jdbc:3.45.1.0")
+dependencies{
+    compileOnly(project(":kutils"))
+    compileOnly(project(":KDrainPluginApi"))
 }
 
+tasks.register<Copy>("buildPlugin") {
+    group = "kdrain"
+    description = "Build plugin JAR and copy to app/plugins"
+    dependsOn(tasks.jar)
+    from(tasks.jar.map { it.archiveFile })
+    into("${rootProject.projectDir}/app/plugins/")
+}
 group = libs.versions.sdkGroup.get()
 version = libs.versions.sdkVersion.get()

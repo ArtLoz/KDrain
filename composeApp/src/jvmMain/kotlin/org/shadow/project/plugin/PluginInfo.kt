@@ -12,9 +12,11 @@ data class PluginInfo(
     val description: String,
     val pluginClass: Class<out KDrainPlugin>,
     val jarFile: File,
-    val classLoader: URLClassLoader
+    val classLoader: URLClassLoader,
+    val folderName: String? = null
 ) : Closeable {
-    val id: String = "$name:$version"
+    val id: String = if (folderName != null) "$folderName:$name:$version" else "$name:$version"
+    val displayName: String = if (folderName != null) "$name ($folderName)" else name
 
     fun createInstance(): KDrainPlugin? =
         try {

@@ -39,4 +39,5 @@ plugins {
 include(":composeApp")
 include(":kutils")
 include(":Plugins:scrydePathEoPlug")
+include(":Plugins:SimpleFarm")
 include(":KDrainPluginApi")

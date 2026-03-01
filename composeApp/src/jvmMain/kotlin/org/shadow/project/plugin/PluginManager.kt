@@ -40,18 +40,27 @@ class PluginManager {
         // Close old classloaders before reloading
         _plugins.value.forEach { it.close() }
 
-        val jarFiles = pluginsDir.listFiles { file -> file.extension == "jar" } ?: emptyArray()
         val loaded = mutableListOf<PluginInfo>()
 
-        for (jar in jarFiles) {
+        // JARs в корне app/plugins/
+        pluginsDir.listFiles { file -> file.extension == "jar" }?.forEach { jar ->
             try {
-                val discovered = discoverPluginClasses(jar)
-                for (pluginInfo in discovered) {
-                    loaded.add(pluginInfo)
-                    println("[PluginManager] Loaded: ${jar.name} -> ${pluginInfo.name} v${pluginInfo.version}")
-                }
+                discoverPluginClasses(jar).forEach { loaded.add(it) }
+                println("[PluginManager] Loaded: ${jar.name}")
             } catch (e: Exception) {
                 System.err.println("[PluginManager] Failed to load ${jar.name}: ${e.message}")
+            }
+        }
+
+        // JARs в подпапках app/plugins/<folder>/
+        pluginsDir.listFiles { file -> file.isDirectory }?.forEach { dir ->
+            dir.listFiles { file -> file.extension == "jar" }?.forEach { jar ->
+                try {
+                    discoverPluginClasses(jar, dir.name).forEach { loaded.add(it) }
+                    println("[PluginManager] Loaded: ${dir.name}/${jar.name}")
+                } catch (e: Exception) {
+                    System.err.println("[PluginManager] Failed to load ${dir.name}/${jar.name}: ${e.message}")
+                }
             }
         }
 
@@ -60,7 +69,7 @@ class PluginManager {
     }
 
     @Suppress("UNCHECKED_CAST") // Safe: verified KDrainPlugin::class.java.isAssignableFrom(clazz)
-    private fun discoverPluginClasses(jarFile: File): List<PluginInfo> {
+    private fun discoverPluginClasses(jarFile: File, folderName: String? = null): List<PluginInfo> {
         val classLoader = URLClassLoader(
             arrayOf(jarFile.toURI().toURL()),
             this::class.java.classLoader
@@ -91,7 +100,8 @@ class PluginManager {
                                 description = instance.description,
                                 pluginClass = pluginClass,
                                 jarFile = jarFile,
-                                classLoader = classLoader
+                                classLoader = classLoader,
+                                folderName = folderName
                             )
                         )
                     }
@@ -113,7 +123,7 @@ class PluginManager {
         return result
     }
 
-    fun runPlugin(plugin: PluginInfo, bot: L2Bot, scope: CoroutineScope) {
+    fun runPаlugin(plugin: PluginInfo, bot: L2Bot, scope: CoroutineScope) {
         val key = PluginRunKey(plugin.id, bot.charName)
 
         // Stop existing run of this plugin on this bot if any

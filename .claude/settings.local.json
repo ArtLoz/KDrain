@@ -13,7 +13,14 @@
       "Bash(xargs wc:*)",
       "Bash(./gradlew :scrydePathEoPlug:buildPlugin:*)",
       "Bash(./gradlew compileKotlinJvm:*)",
-      "Bash(./gradlew :Plugins:scrydePathEoPlug:tasks:*)"
+      "Bash(./gradlew :Plugins:scrydePathEoPlug:tasks:*)",
+      "Bash(./gradlew :Plugins:SimpleFarm:tasks:*)",
+      "Bash(./gradlew :Plugins:SimpleFarm:compileKotlin:*)",
+      "Bash(cp:*)",
+      "Bash(./gradlew :kutils:compileKotlin:*)",
+      "Bash(./gradlew :composeApp:compileKotlinJvm:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(jar xf:*)"
     ]
   }
 }
