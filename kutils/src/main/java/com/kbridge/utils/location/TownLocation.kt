@@ -332,19 +332,54 @@ data object OrenTown: TownLocation{
         get() = NpcInfo(
             id = 32327,
             location = LocationPoint(82375, 53295, -1488),
-            gpsPointName = "NPC_Oren_Server_Npc"
+            gpsPointName = "NPC_Oren_Newbie"
         )
     override val npcServer: NpcInfo
         get() = NpcInfo(
             id = 826,
             location = LocationPoint(83019, 53293, -1488),
-            gpsPointName = "NPC_G_Server_Npc"
+            gpsPointName = "NPC_Oren_Server_Npc"
         )
     override val npcServerBuffer: NpcInfo
         get() = NpcInfo(
             id = 624,
             location = LocationPoint(82941, 53110, -1488),
             gpsPointName = "NPC_Oren_Server_buffer"
+        )
+}
+
+data object HunterVillage: TownLocation{
+    override val centerPoint: TownCenterPoint
+        get() = TownCenterPoint(location = LocationPoint(116938, 76194, -2728), range = 5000)
+    override val npcGatekeeper: NpcInfo
+        get() = NpcInfo(
+            id = 30233,
+            location = LocationPoint(117107, 76894, -2696),
+            gpsPointName = "NPC_HV_GK"
+        )
+    override val npcGrocer: NpcInfo
+        get() = NpcInfo(
+            id = 30301,
+            location = LocationPoint(116640, 74826, -2584),
+            gpsPointName = "NPC_HV_Grocery"
+        )
+    override val npcNewbie: NpcInfo
+        get() = NpcInfo(
+            id = 32327,
+            location = LocationPoint(116929, 77246, -2688),
+            gpsPointName = "NPC_HV_Newbie"
+        )
+    override val npcServer: NpcInfo
+        get() = NpcInfo(
+            id = 826,
+            location = LocationPoint(117058, 76979, -2696),
+            gpsPointName = "NPC_HV_Server_Npc"
+        )
+    override val npcServerBuffer: NpcInfo
+        get() = NpcInfo(
+            id = 624,
+            location = LocationPoint(117072, 77077, -2688),
+            gpsPointName = "NPC_HV_Server_buffer"
         )
 
 }

@@ -43,8 +43,8 @@ fun IL2Live.hasBuff(idBuff: Int): Boolean {
     return this.buffs.any { it.id == idBuff }
 }
 
-fun List<L2Item>.getItemCount(id: Int): Int {
-    return this.count { it.id == id }
+fun List<L2Item>.getItemCount(id: Int): Long {
+    return this.find { it.id == id }?.count ?: 0
 }
 
 fun List<L2Pet>.petDead(): Boolean {

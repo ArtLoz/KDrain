@@ -69,15 +69,16 @@ class FarmBot(
     suspend fun rebuff() {
         val path = zone.buffDialogPath
         if (path.isEmpty()) return
-        val npc = town.npcNewbie
+        val npc = town.npcServerBuffer ?: return
         log("rebuff", "start (${town::class.simpleName})")
         var attempts = 0
-        while (isBuffEnding() && attempts < 5) {
+        while (isBuffEnding() && attempts < 2) {
             bot.moveByKGpsToNpc(npc)
             bot.targetAndConfirm(npc.id)
             bot.openDialogAndConfirm()
             for (index in path) {
                 bot.selectedDialogByIndex(index)
+                delay(1_000)
             }
             delay(1_000)
             attempts++
@@ -94,13 +95,14 @@ class FarmBot(
         if (path.isEmpty() || !hasPet()) return
         log("rebuffPet", "start")
         var attempts = 0
-        while (isPetBuffEnding() && attempts < 5) {
-            val npc = town.npcNewbie
+        while (isPetBuffEnding() && attempts < 2) {
+            val npc = town.npcServerBuffer ?: return
             bot.moveByKGpsToNpc(npc)
             bot.targetAndConfirm(npc.id)
             bot.openDialogAndConfirm()
             for (index in path) {
                 bot.selectedDialogByIndex(index)
+                delay(1_000)
             }
             delay(1_000)
             attempts++

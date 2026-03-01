@@ -200,12 +200,31 @@ fun LibraryItem(
                     .padding(vertical = 12.dp)
                     .weight(1f)
             ) {
-                Text(
-                    text = plugin.name,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = plugin.name,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (!plugin.folderName.isNullOrBlank()) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(3.dp)
+                        ) {
+                            Text(
+                                text = plugin.folderName,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                            )
+                        }
+                    }
+                }
                 Text(
                     text = "v${plugin.pluginInfo.version} by ${plugin.pluginInfo.author}",
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),

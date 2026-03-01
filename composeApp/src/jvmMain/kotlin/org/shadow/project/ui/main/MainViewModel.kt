@@ -90,6 +90,7 @@ class MainViewModel(
                         pluginInfo = plugin,
                         details = plugin.description,
                         id = plugin.id,
+                        folderName = plugin.folderName,
                         runningBots = runningBots
                     )
                 }
@@ -107,7 +108,8 @@ class MainViewModel(
                 plugins
                     .filter { plugin ->
                         searchQuery.isBlank() ||
-                                plugin.name.contains(searchQuery, ignoreCase = true)
+                                plugin.name.contains(searchQuery, ignoreCase = true) ||
+                                plugin.folderName?.contains(searchQuery, ignoreCase = true) == true
                     }
                     .map { plugin ->
                         PluginsUi(
@@ -115,7 +117,8 @@ class MainViewModel(
                             active = false,
                             pluginInfo = plugin,
                             details = plugin.description,
-                            id = plugin.id
+                            id = plugin.id,
+                            folderName = plugin.folderName
                         )
                     }
             }.collect { libraryPluginsUi ->

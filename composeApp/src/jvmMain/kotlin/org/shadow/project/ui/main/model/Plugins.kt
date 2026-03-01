@@ -15,5 +15,6 @@ data class PluginsUi(
     val pluginInfo: PluginInfo,
     val details: String?,
     val id: String,
+    val folderName: String? = null,
     val runningBots: List<BotRunInfo> = emptyList()
 )

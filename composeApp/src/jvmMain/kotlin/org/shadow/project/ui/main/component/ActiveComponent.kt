@@ -78,6 +78,7 @@ fun ActiveScriptsPanel(
                 items(activePlugins, key = { it.id }) { plugin ->
                     ScriptCard(
                         name = plugin.name,
+                        folderName = plugin.folderName,
                         statusDetail = plugin.details,
                         version = plugin.pluginInfo.version,
                         author = plugin.pluginInfo.author,
@@ -97,6 +98,7 @@ fun ActiveScriptsPanel(
 @Composable
 fun ScriptCard(
     name: String,
+    folderName: String? = null,
     statusDetail: String?,
     version: String,
     author: String,
@@ -136,12 +138,31 @@ fun ScriptCard(
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        name,
-                        color = if (hasAnyRunning) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            name,
+                            color = if (hasAnyRunning) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        if (!folderName.isNullOrBlank()) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                shape = RoundedCornerShape(3.dp)
+                            ) {
+                                Text(
+                                    text = folderName,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                                )
+                            }
+                        }
+                    }
                     Text(
                         "v$version by $author",
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),

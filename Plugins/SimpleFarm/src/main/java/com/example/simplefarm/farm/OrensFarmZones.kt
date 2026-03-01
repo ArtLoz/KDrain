@@ -55,3 +55,42 @@ data object OrenClFour : FarmZone {
     override val zoneFile: String get() = "zone/OREN_CL_FOUR.zmap"
     override val configFile: String get() = "OREN_CL_SPOIL_CF.xml"
 }
+data object Oren46to51One : FarmZone {
+    override val name: String get() = "OrenClFour"
+    override val town: TownLocation get() = OrenTown
+    override val teleportPath: List<Int> get() = listOf(1, 9)
+    override val spot: SpotPoint get() = SpotPoint(
+        location = LocationPoint(91161, 27880, -3640),
+        gpsPointName = "IT_46_TO_51_FIRST"
+    )
+    override val buffDialogPath: List<Int> get() = listOf(1, 3, 3)
+    override val zoneFile: String get() = "zone/IT_46_TO_51_FIRST.zmap"
+    override val configFile: String get() = "IT_SPOIL_46_TO_51.xml"
+}
+
+data object Oren46to51Second : FarmZone {
+    override val name: String get() = "OrenClFour"
+    override val town: TownLocation get() = OrenTown
+    override val teleportPath: List<Int> get() = listOf(1, 9)
+    override val spot: SpotPoint get() = SpotPoint(
+        location = LocationPoint(91161, 27880, -3640),
+        gpsPointName = "IT_46_TO_51_SECOND"
+    )
+    override val buffDialogPath: List<Int> get() = listOf(1, 3, 3)
+    override val zoneFile: String get() = "zone/IT_46_TO_51_SECOND.zmap"
+    override val configFile: String get() = "IT_SPOIL_46_TO_51.xml"
+}
+
+data object Oren46to51Three : FarmZone {
+    override val name: String get() = "OrenClFour"
+    override val town: TownLocation get() = OrenTown
+    override val teleportPath: List<Int> get() = listOf(1, 9)
+    override val spot: SpotPoint get() = SpotPoint(
+        location = LocationPoint(82533, 25242, -3520),
+        gpsPointName = "IT_46_TO_51_FOUR"
+    )
+    override val buffDialogPath: List<Int> get() = listOf(1, 3, 3)
+    override val zoneFile: String get() = "zone/IT_46_TO_51_FOUR.zmap"
+    override val configFile: String get() = "IT_SPOIL_46_TO_51.xml"
+}
+
