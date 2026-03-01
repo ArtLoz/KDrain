@@ -1,7 +1,7 @@
 package com.example.simplefarm
 
 import com.kbridge.utils.ResourceHelper
-import com.kbridge.utils.location.farm.FarmZone
+import com.example.simplefarm.farm.FarmZone
 import com.l2bot.bridge.api.L2Bot
 import kotlinx.coroutines.delay
 

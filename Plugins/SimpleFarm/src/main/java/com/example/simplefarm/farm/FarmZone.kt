@@ -1,4 +1,4 @@
-package com.kbridge.utils.location.farm
+package com.example.simplefarm.farm
 
 import com.kbridge.utils.location.TownLocation
 
