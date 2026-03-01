@@ -38,5 +38,5 @@ plugins {
 
 include(":composeApp")
 include(":kutils")
-include(":scrydePathEoPlug")
+include(":Plugins:scrydePathEoPlug")
 include(":KDrainPluginApi")

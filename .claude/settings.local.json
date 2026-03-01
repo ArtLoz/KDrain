@@ -12,7 +12,8 @@
       "Bash(find C:\\\\softt\\\\Plug\\\\Space\\\\Kbridge:*)",
       "Bash(xargs wc:*)",
       "Bash(./gradlew :scrydePathEoPlug:buildPlugin:*)",
-      "Bash(./gradlew compileKotlinJvm:*)"
+      "Bash(./gradlew compileKotlinJvm:*)",
+      "Bash(./gradlew :Plugins:scrydePathEoPlug:tasks:*)"
     ]
   }
 }
