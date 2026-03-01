@@ -131,5 +131,9 @@ private fun resolveFarmZone(name: String): FarmZone? = when (name) {
     "OrenClSecond" -> OrenClSecond
     "OrenClThree" -> OrenClThree
     "OrenClFour" -> OrenClFour
+    "Oren46to51One" -> Oren46to51One
+    "Oren46to51Second" -> Oren46to51Second
+    "Oren46to51Three" -> Oren46to51Three
+    "HvZone40to46" -> HvZone40to46
     else -> null
 }

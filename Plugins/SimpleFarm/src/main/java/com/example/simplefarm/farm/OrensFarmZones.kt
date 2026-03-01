@@ -56,7 +56,7 @@ data object OrenClFour : FarmZone {
     override val configFile: String get() = "OREN_CL_SPOIL_CF.xml"
 }
 data object Oren46to51One : FarmZone {
-    override val name: String get() = "OrenClFour"
+    override val name: String get() = "Oren46to51One"
     override val town: TownLocation get() = OrenTown
     override val teleportPath: List<Int> get() = listOf(1, 9)
     override val spot: SpotPoint get() = SpotPoint(
@@ -69,7 +69,7 @@ data object Oren46to51One : FarmZone {
 }
 
 data object Oren46to51Second : FarmZone {
-    override val name: String get() = "OrenClFour"
+    override val name: String get() = "Oren46to51Second"
     override val town: TownLocation get() = OrenTown
     override val teleportPath: List<Int> get() = listOf(1, 9)
     override val spot: SpotPoint get() = SpotPoint(
@@ -82,7 +82,7 @@ data object Oren46to51Second : FarmZone {
 }
 
 data object Oren46to51Three : FarmZone {
-    override val name: String get() = "OrenClFour"
+    override val name: String get() = "Oren46to51Three"
     override val town: TownLocation get() = OrenTown
     override val teleportPath: List<Int> get() = listOf(1, 9)
     override val spot: SpotPoint get() = SpotPoint(
