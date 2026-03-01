@@ -312,3 +312,39 @@ data object GludioVillage : TownLocation {
             gpsPointName = "NPC_G_Manuel"
         )
 }
+
+data object OrenTown: TownLocation{
+    override val centerPoint: TownCenterPoint
+        get() = TownCenterPoint(location = LocationPoint(81022, 54807, -1520), range = 5000)
+    override val npcGatekeeper: NpcInfo
+        get() = NpcInfo(
+            id = 30177,
+            location = LocationPoint(83001, 53210, -1488),
+            gpsPointName = "NPC_Oren_GK"
+        )
+    override val npcGrocer: NpcInfo
+        get() = NpcInfo(
+            id = 30180,
+            location = LocationPoint(79522, 54961, -1544),
+            gpsPointName = "NPC_Oren_Grocery"
+        )
+    override val npcNewbie: NpcInfo
+        get() = NpcInfo(
+            id = 32327,
+            location = LocationPoint(82375, 53295, -1488),
+            gpsPointName = "NPC_Oren_Server_Npc"
+        )
+    override val npcServer: NpcInfo
+        get() = NpcInfo(
+            id = 826,
+            location = LocationPoint(83019, 53293, -1488),
+            gpsPointName = "NPC_G_Server_Npc"
+        )
+    override val npcServerBuffer: NpcInfo
+        get() = NpcInfo(
+            id = 624,
+            location = LocationPoint(82941, 53110, -1488),
+            gpsPointName = "NPC_Oren_Server_buffer"
+        )
+
+}
