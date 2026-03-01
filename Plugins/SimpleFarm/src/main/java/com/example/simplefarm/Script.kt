@@ -1,8 +1,10 @@
 package com.example.simplefarm
 
 import com.kbridge.utils.ResourceHelper
-import com.example.simplefarm.farm.FarmZone
+import com.kbridge.utils.captcha.launchCaptchaHandler
+import com.example.simplefarm.farm.*
 import com.l2bot.bridge.api.L2Bot
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 
 private const val PLUGIN_NAME = "SimpleFarm"
@@ -32,6 +34,10 @@ suspend fun scriptRun(bot: L2Bot) {
 
     bot.gps.loadBase(ResourceHelper.getDatabasePath())
     farm.log("init", "GPS loaded, town=${zone.town::class.simpleName}, zone=${zone.name}")
+
+    coroutineScope {
+    // Captcha handler runs in background
+    launchCaptchaHandler(bot, farm::log)
 
     // ---- Main loop ----
     var faceControlOn = false
@@ -117,16 +123,13 @@ suspend fun scriptRun(bot: L2Bot) {
     // Cleanup
     bot.setFaceControl(0, false)
     farm.log("main", "script finished")
+    } // coroutineScope
 }
 
-/**
- * Resolves FarmZone by name from config.
- * Add concrete FarmZone data objects to kutils and map them here.
- */
-private fun resolveFarmZone(name: String): FarmZone? {
-    // TODO: map zone names to concrete FarmZone data objects once defined
-    // Example:
-    // "GludioGolems" -> GludioGolems
-    // "KamaelSpiders" -> KamaelSpiders
-    return null
+private fun resolveFarmZone(name: String): FarmZone? = when (name) {
+    "OrenClFirst" -> OrenClFirst
+    "OrenClSecond" -> OrenClSecond
+    "OrenClThree" -> OrenClThree
+    "OrenClFour" -> OrenClFour
+    else -> null
 }

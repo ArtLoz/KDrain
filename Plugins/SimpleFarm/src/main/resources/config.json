@@ -1,8 +1,8 @@
 {
-  "farmZone": "KamaelGold",
-  "buffId": 4328,
+  "farmZone": "OrenClFirst",
+  "buffId": 1043,
   "soeId": 10650,
-  "ssId": 2509,
-  "petRezItemId": 0,
-  "escapeSkillId": 0
+  "ssId": 1463,
+  "petRezItemId": 737,
+  "escapeSkillId": 736
 }

@@ -1,4 +1,25 @@
-# SimpleFarm — Config
+# SimpleFarm
+
+## Build
+
+```bash
+./gradlew :Plugins:SimpleFarm:buildPlugin
+```
+
+JAR will be copied to `app/plugins/`.
+To use multiple configs for different zones, create subdirectories:
+
+```
+app/plugins/
+  ├── oren_first/
+  │    ├── SimpleFarm.jar
+  │    └── SimpleFarm.json   (farmZone: "OrenClFirst")
+  └── oren_second/
+       ├── SimpleFarm.jar
+       └── SimpleFarm.json   (farmZone: "OrenClSecond")
+```
+
+## Config
 
 Config file: `SimpleFarm.json` (next to the plugin JAR).
 On first run, the default config is extracted automatically.
@@ -16,19 +37,19 @@ On first run, the default config is extracted automatically.
 
 ## Available Farm Zones
 
-Zones are defined as `FarmZone` data objects in `kutils/location/farm/`.
+Zones are defined as `FarmZone` data objects in `farm/` package.
 Use the object name as `farmZone` value in config.
 
-Example zones (once defined):
-- `KamaelGold` — Gold farm near Kamael Village
-- `KamaelGolem` — Golem farm near Kamael Village
-- `GludioWindmill` — Windmill Hill from Gludin Village
+- `OrenClFirst` — Cruma Marshlands spot 1 (Oren)
+- `OrenClSecond` — Cruma Marshlands spot 2 (Oren)
+- `OrenClThree` — Cruma Marshlands spot 3 (Oren)
+- `OrenClFour` — Cruma Marshlands spot 4 (Oren)
 
 ## Example Config
 
 ```json
 {
-  "farmZone": "KamaelGold",
+  "farmZone": "OrenClFirst",
   "buffId": 4328,
   "soeId": 10650,
   "ssId": 2509,

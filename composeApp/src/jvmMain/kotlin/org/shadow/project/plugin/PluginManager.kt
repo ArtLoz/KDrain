@@ -123,7 +123,7 @@ class PluginManager {
         return result
     }
 
-    fun runPаlugin(plugin: PluginInfo, bot: L2Bot, scope: CoroutineScope) {
+    fun runPlugin(plugin: PluginInfo, bot: L2Bot, scope: CoroutineScope) {
         val key = PluginRunKey(plugin.id, bot.charName)
 
         // Stop existing run of this plugin on this bot if any
