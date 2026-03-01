@@ -1,11 +1,9 @@
 package com.kbridge.utils.location.farm
 
-import com.kbridge.utils.location.TownCenterPoint
 import com.kbridge.utils.location.TownLocation
 
 sealed interface FarmZone {
     val name: String
-    val center: TownCenterPoint
     val town: TownLocation
     val teleportPath: List<Int>
     val spot: SpotPoint
