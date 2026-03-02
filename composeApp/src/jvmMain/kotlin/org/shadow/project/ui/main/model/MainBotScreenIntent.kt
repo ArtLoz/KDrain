@@ -2,6 +2,7 @@ package org.shadow.project.ui.main.model
 
 import com.l2bot.bridge.api.L2Bot
 import org.shadow.project.plugin.PluginInfo
+import org.shadow.project.plugin.StagedPlugin
 
 sealed interface MainBotScreenIntent {
     data object LoadBots : MainBotScreenIntent
@@ -17,7 +18,15 @@ sealed interface MainBotScreenIntent {
 
     // Active list actions
     data class TogglePluginOnSelectedBot(val plugin: PluginsUi) : MainBotScreenIntent
-    data class StopPluginOnBot(val pluginId: String, val botCharName: String) : MainBotScreenIntent
+    data class StopPluginOnBot(val pluginId: String, val configId: String, val botCharName: String) : MainBotScreenIntent
     data class RemoveActivePlugin(val plugin: PluginsUi) : MainBotScreenIntent
     data object StopAllPlugins : MainBotScreenIntent
+
+    // Config dialog
+    data class EditConfig(val plugin: PluginsUi) : MainBotScreenIntent
+    data class UpdateConfigDialogValue(val key: String, val value: String) : MainBotScreenIntent
+    data class UpdateConfigDialogLabel(val label: String) : MainBotScreenIntent
+    data class CopyConfigFrom(val stagedPlugin: StagedPlugin) : MainBotScreenIntent
+    data object ConfirmConfigDialog : MainBotScreenIntent
+    data object DismissConfigDialog : MainBotScreenIntent
 }

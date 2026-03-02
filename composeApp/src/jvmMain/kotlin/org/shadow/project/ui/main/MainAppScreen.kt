@@ -20,6 +20,7 @@ import org.shadow.project.logging.LogController
 import org.shadow.project.ui.logging.LogView
 import org.shadow.project.ui.main.component.ActiveScriptsPanel
 import org.shadow.project.ui.main.component.CharacterStatusBar
+import org.shadow.project.ui.main.component.ConfigDialog
 import org.shadow.project.ui.main.component.LibraryPanel
 import org.shadow.project.ui.main.component.SubBotsPanel
 import org.shadow.project.ui.main.model.MainBotScreenIntent
@@ -60,10 +61,11 @@ fun KDrainMain(modifier: Modifier = Modifier){
                             selectedBotName = state.selectedBot?.charName,
                             onChangeStatusPlugin = { viewModel.processIntent(MainBotScreenIntent.TogglePluginOnSelectedBot(it)) },
                             onDeletePlugin = { viewModel.processIntent(MainBotScreenIntent.RemoveActivePlugin(it)) },
-                            onStopPluginOnBot = { pluginId, botName ->
-                                viewModel.processIntent(MainBotScreenIntent.StopPluginOnBot(pluginId, botName))
+                            onStopPluginOnBot = { pluginId, configId, botName ->
+                                viewModel.processIntent(MainBotScreenIntent.StopPluginOnBot(pluginId, configId, botName))
                             },
                             stopAllPlugins = { viewModel.processIntent(MainBotScreenIntent.StopAllPlugins) },
+                            onEditConfig = { viewModel.processIntent(MainBotScreenIntent.EditConfig(it)) },
                             modifier = Modifier.weight(2f).padding(horizontal = 8.dp)
                         )
                         LogView(
@@ -82,6 +84,20 @@ fun KDrainMain(modifier: Modifier = Modifier){
                         onClickRefresh = { viewModel.processIntent(MainBotScreenIntent.LoadPlugins) }
                     )
                 }
+            }
+
+            // Config dialog overlay
+            state.configDialogState?.let { dialogState ->
+                ConfigDialog(
+                    state = dialogState,
+                    onValueChange = { key, value ->
+                        viewModel.processIntent(MainBotScreenIntent.UpdateConfigDialogValue(key, value))
+                    },
+                    onLabelChange = { viewModel.processIntent(MainBotScreenIntent.UpdateConfigDialogLabel(it)) },
+                    onCopyFrom = { viewModel.processIntent(MainBotScreenIntent.CopyConfigFrom(it)) },
+                    onConfirm = { viewModel.processIntent(MainBotScreenIntent.ConfirmConfigDialog) },
+                    onDismiss = { viewModel.processIntent(MainBotScreenIntent.DismissConfigDialog) }
+                )
             }
         }
     }

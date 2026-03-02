@@ -6,19 +6,18 @@ import com.example.simplefarm.farm.*
 import com.l2bot.bridge.api.L2Bot
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import org.shadow.kdrainpluginapi.PluginConfig
 
 private const val PLUGIN_NAME = "SimpleFarm"
 
-suspend fun scriptRun(bot: L2Bot, log: (String, String) -> Unit) {
-    val config = PluginConfig.load(MyPlugin::class.java, PLUGIN_NAME)
+suspend fun scriptRun(bot: L2Bot, config: PluginConfig, log: (String, String) -> Unit) {
+    val buffId = config.int("buffId")
+    val soeId = config.int("soeId")
+    val ssId = config.int("ssId")
+    val petRezItemId = config.int("petRezItemId")
+    val escapeSkillId = config.int("escapeSkillId")
 
-    val buffId = config.getInt("buffId", 4328)
-    val soeId = config.getInt("soeId", 10650)
-    val ssId = config.getInt("ssId", 2509)
-    val petRezItemId = config.getInt("petRezItemId", 0)
-    val escapeSkillId = config.getInt("escapeSkillId", 0)
-
-    val zone = resolveFarmZone(config.getString("farmZone", ""))
+    val zone = resolveFarmZone(config.text("farmZone"))
         ?: throw IllegalStateException("farmZone not specified or unknown in config")
 
     val farm = FarmBot(

@@ -30,8 +30,9 @@ fun ActiveScriptsPanel(
     selectedBotName: String?,
     onChangeStatusPlugin: (PluginsUi) -> Unit,
     onDeletePlugin: (PluginsUi) -> Unit,
-    onStopPluginOnBot: (pluginId: String, botCharName: String) -> Unit,
+    onStopPluginOnBot: (pluginId: String, configId: String, botCharName: String) -> Unit,
     stopAllPlugins: () -> Unit,
+    onEditConfig: (PluginsUi) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -79,6 +80,7 @@ fun ActiveScriptsPanel(
                     ScriptCard(
                         name = plugin.name,
                         folderName = plugin.folderName,
+                        configLabel = plugin.configLabel,
                         version = plugin.pluginInfo.version,
                         author = plugin.pluginInfo.author,
                         icon = Icons.Default.AdsClick,
@@ -86,7 +88,16 @@ fun ActiveScriptsPanel(
                         runningBots = plugin.runningBots,
                         onClickChangeStatus = { onChangeStatusPlugin(plugin) },
                         onClickDelete = { onDeletePlugin(plugin) },
-                        onStopBot = { botCharName -> onStopPluginOnBot(plugin.id, botCharName) }
+                        onStopBot = { botCharName ->
+                            onStopPluginOnBot(
+                                plugin.pluginInfo.id,
+                                plugin.configId ?: "",
+                                botCharName
+                            )
+                        },
+                        onEditConfig = if (plugin.configLabel != null) {
+                            { onEditConfig(plugin) }
+                        } else null
                     )
                 }
             }
@@ -98,6 +109,7 @@ fun ActiveScriptsPanel(
 fun ScriptCard(
     name: String,
     folderName: String? = null,
+    configLabel: String? = null,
     version: String,
     author: String,
     icon: ImageVector,
@@ -105,7 +117,8 @@ fun ScriptCard(
     runningBots: List<BotRunInfo>,
     onClickChangeStatus: () -> Unit,
     onClickDelete: () -> Unit,
-    onStopBot: (String) -> Unit
+    onStopBot: (String) -> Unit,
+    onEditConfig: (() -> Unit)? = null
 ) {
     val hasAnyRunning = runningBots.isNotEmpty()
     val statusColor =
@@ -160,6 +173,20 @@ fun ScriptCard(
                                 )
                             }
                         }
+                        if (!configLabel.isNullOrBlank()) {
+                            Surface(
+                                color = Color(0xFF3498DB).copy(alpha = 0.15f),
+                                shape = RoundedCornerShape(3.dp)
+                            ) {
+                                Text(
+                                    text = configLabel,
+                                    color = Color(0xFF3498DB),
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                                )
+                            }
+                        }
                     }
                     Text(
                         "v$version by $author",
@@ -184,6 +211,9 @@ fun ScriptCard(
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    if (onEditConfig != null) {
+                        ActionIconButton(Icons.Default.Settings, onEditConfig)
+                    }
                     ActionIconButton(
                         if (isSelectedBotRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
                         onClickChangeStatus

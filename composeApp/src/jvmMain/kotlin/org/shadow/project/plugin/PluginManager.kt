@@ -5,7 +5,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import org.shadow.kdrainpluginapi.ConfigurablePlugin
 import org.shadow.kdrainpluginapi.KDrainPlugin
+import org.shadow.kdrainpluginapi.PluginConfig
 import org.shadow.project.logging.LogController
 import java.io.File
 import java.io.PrintWriter
@@ -13,11 +15,23 @@ import java.io.StringWriter
 import java.net.URLClassLoader
 import java.util.jar.JarFile
 
-data class PluginRunKey(val pluginId: String, val botCharName: String)
+data class PluginRunKey(val pluginId: String, val configId: String, val botCharName: String)
 
 class PluginManager(private val logController: LogController) {
 
-    private val pluginsDir = File(System.getProperty("user.dir"), "app/plugins")
+    private val pluginsDir = resolvePluginsDir()
+
+    companion object {
+        private fun resolvePluginsDir(): File {
+            val userDir = File(System.getProperty("user.dir"))
+            // Try current dir first, then parent (for running from submodule like composeApp/)
+            val direct = File(userDir, "app/plugins")
+            if (direct.exists()) return direct
+            val parent = File(userDir.parentFile, "app/plugins")
+            if (parent.exists()) return parent
+            return direct // fallback to original path for error messages
+        }
+    }
 
     private val _plugins = MutableStateFlow<List<PluginInfo>>(emptyList())
     val plugins = _plugins.asStateFlow()
@@ -30,6 +44,7 @@ class PluginManager(private val logController: LogController) {
 
     data class ActivePluginEntry(
         val pluginId: String,
+        val configId: String,
         val bot: L2Bot,
         val pluginName: String,
         val job: Job,
@@ -123,9 +138,9 @@ class PluginManager(private val logController: LogController) {
                         )
                     }
                 } catch (e: ClassNotFoundException) {
-                    // Expected — dependency not available
+                    System.err.println("[PluginManager] ClassNotFound for $className: ${e.message}")
                 } catch (e: NoClassDefFoundError) {
-                    // Expected — transitive dependency missing
+                    System.err.println("[PluginManager] NoClassDefFound for $className: ${e.message}")
                 } catch (e: Throwable) {
                     System.err.println("[PluginManager] Error loading class $className: ${stackTraceToString(e)}")
                 }
@@ -141,11 +156,12 @@ class PluginManager(private val logController: LogController) {
         return result
     }
 
-    fun runPlugin(plugin: PluginInfo, bot: L2Bot, scope: CoroutineScope) {
-        val key = PluginRunKey(plugin.id, bot.charName)
+    fun runPlugin(staged: StagedPlugin, bot: L2Bot, scope: CoroutineScope) {
+        val plugin = staged.pluginInfo
+        val key = PluginRunKey(plugin.id, staged.configId, bot.charName)
 
-        // Stop existing run of this plugin on this bot if any
-        stopPlugin(plugin.id, bot)
+        // Stop existing run of this plugin+config on this bot if any
+        stopPlugin(plugin.id, staged.configId, bot)
 
         val instance = plugin.createInstance() ?: run {
             val msg = "[PluginManager] Failed to create instance of ${plugin.name}"
@@ -157,11 +173,18 @@ class PluginManager(private val logController: LogController) {
         // Use LAZY start: register entry BEFORE starting to avoid race condition
         val job = scope.launch(Dispatchers.IO, start = CoroutineStart.LAZY) {
             try {
-                println("[PluginManager] Running plugin: ${plugin.name} for bot: ${bot.charName}")
+                val label = staged.configLabel.ifBlank { "" }
+                val labelSuffix = if (label.isNotEmpty()) " [$label]" else ""
+                println("[PluginManager] Running plugin: ${plugin.name}$labelSuffix for bot: ${bot.charName}")
                 instance.onLog = { tag, msg ->
                     logController.logPlugin(bot.charName, "[${plugin.name}][$tag] $msg")
                 }
-                instance.onEnable(bot)
+                if (instance is ConfigurablePlugin) {
+                    val config = PluginConfig.fromMap(staged.configValues)
+                    instance.onEnable(bot, config)
+                } else {
+                    instance.onEnable(bot)
+                }
             } catch (e: CancellationException) {
                 println("[PluginManager] Plugin cancelled: ${plugin.name} for bot: ${bot.charName}")
                 throw e
@@ -184,22 +207,22 @@ class PluginManager(private val logController: LogController) {
         }
 
         _activePlugins.update {
-            it + (key to ActivePluginEntry(plugin.id, bot, plugin.name, job, instance))
+            it + (key to ActivePluginEntry(plugin.id, staged.configId, bot, plugin.name, job, instance))
         }
         job.start()
     }
 
-    fun stopPlugin(pluginId: String, bot: L2Bot) {
-        val key = PluginRunKey(pluginId, bot.charName)
+    fun stopPlugin(pluginId: String, configId: String, bot: L2Bot) {
+        val key = PluginRunKey(pluginId, configId, bot.charName)
         _activePlugins.update { map ->
             map[key]?.job?.cancel()
             map - key
         }
     }
 
-    fun stopPluginOnAllBots(pluginId: String) {
+    fun stopPluginOnAllBots(pluginId: String, configId: String) {
         _activePlugins.update { map ->
-            val toRemove = map.filter { it.key.pluginId == pluginId }
+            val toRemove = map.filter { it.key.pluginId == pluginId && it.key.configId == configId }
             toRemove.values.forEach { it.job.cancel() }
             map - toRemove.keys
         }
@@ -212,8 +235,8 @@ class PluginManager(private val logController: LogController) {
         }
     }
 
-    fun isRunning(pluginId: String, bot: L2Bot): Boolean {
-        val key = PluginRunKey(pluginId, bot.charName)
+    fun isRunning(pluginId: String, configId: String, bot: L2Bot): Boolean {
+        val key = PluginRunKey(pluginId, configId, bot.charName)
         val entry = _activePlugins.value[key] ?: return false
         return entry.job.isActive
     }

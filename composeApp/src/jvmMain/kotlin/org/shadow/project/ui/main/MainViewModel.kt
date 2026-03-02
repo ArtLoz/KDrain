@@ -22,10 +22,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import org.shadow.kdrainpluginapi.ConfigField
+import org.shadow.kdrainpluginapi.ConfigurablePlugin
 import org.shadow.project.logging.LogController
+import org.shadow.project.plugin.ConfigStorage
 import org.shadow.project.plugin.PluginInfo
 import org.shadow.project.plugin.PluginManager
+import org.shadow.project.plugin.StagedPlugin
 import org.shadow.project.ui.main.model.BotRunInfo
+import org.shadow.project.ui.main.model.ConfigDialogState
 import org.shadow.project.ui.main.model.MainBotScreenIntent
 import org.shadow.project.ui.main.model.MainBotStateIntent
 import org.shadow.project.ui.main.model.PluginsUi
@@ -70,9 +75,12 @@ class MainViewModel(
                 _state.map { it.stagedPlugins }.distinctUntilChanged(),
                 _state.map { it.botColorMap }.distinctUntilChanged()
             ) { activePlugins, selectedBot, stagedPlugins, botColorMap ->
-                stagedPlugins.map { plugin ->
-                    // Collect all running entries for this plugin across all bots
-                    val runningEntries = activePlugins.filter { it.key.pluginId == plugin.id }
+                stagedPlugins.map { staged ->
+                    val plugin = staged.pluginInfo
+                    // Filter by BOTH pluginId AND configId
+                    val runningEntries = activePlugins.filter {
+                        it.key.pluginId == plugin.id && it.key.configId == staged.configId
+                    }
                     val runningBots = runningEntries.map { (key, entry) ->
                         BotRunInfo(
                             botCharName = key.botCharName,
@@ -82,7 +90,7 @@ class MainViewModel(
                     }.filter { it.isRunning }
 
                     val isSelectedBotRunning = selectedBot?.let { bot ->
-                        pluginManager.isRunning(plugin.id, bot)
+                        pluginManager.isRunning(plugin.id, staged.configId, bot)
                     } ?: false
 
                     PluginsUi(
@@ -90,9 +98,12 @@ class MainViewModel(
                         active = isSelectedBotRunning,
                         pluginInfo = plugin,
                         details = plugin.description,
-                        id = plugin.id,
+                        id = staged.stageKey,
                         folderName = plugin.folderName,
-                        runningBots = runningBots
+                        runningBots = runningBots,
+                        configLabel = staged.configLabel.ifBlank { null },
+                        configId = staged.configId,
+                        stagedPlugin = staged
                     )
                 }
             }.collect { activePluginsUi ->
@@ -238,9 +249,15 @@ class MainViewModel(
             is MainBotScreenIntent.AddPluginToActive -> addPluginToActive(intent.plugin)
             is MainBotScreenIntent.RunPluginFromLibrary -> runPluginFromLibrary(intent.plugin)
             is MainBotScreenIntent.TogglePluginOnSelectedBot -> togglePluginOnSelectedBot(intent.plugin)
-            is MainBotScreenIntent.StopPluginOnBot -> stopPluginOnBot(intent.pluginId, intent.botCharName)
+            is MainBotScreenIntent.StopPluginOnBot -> stopPluginOnBot(intent.pluginId, intent.configId, intent.botCharName)
             is MainBotScreenIntent.RemoveActivePlugin -> removeActivePlugin(intent.plugin)
             is MainBotScreenIntent.StopAllPlugins -> stopAllPlugins()
+            is MainBotScreenIntent.EditConfig -> editConfig(intent.plugin)
+            is MainBotScreenIntent.UpdateConfigDialogValue -> updateConfigDialogValue(intent.key, intent.value)
+            is MainBotScreenIntent.UpdateConfigDialogLabel -> updateConfigDialogLabel(intent.label)
+            is MainBotScreenIntent.CopyConfigFrom -> copyConfigFrom(intent.stagedPlugin)
+            is MainBotScreenIntent.ConfirmConfigDialog -> confirmConfigDialog()
+            is MainBotScreenIntent.DismissConfigDialog -> dismissConfigDialog()
         }
     }
 
@@ -316,47 +333,192 @@ class MainViewModel(
 
     // Library: add plugin to active list (without running)
     private fun addPluginToActive(plugin: PluginInfo) {
-        _state.update { state ->
-            if (state.stagedPlugins.any { it.id == plugin.id }) state
-            else state.copy(stagedPlugins = state.stagedPlugins + plugin)
+        val testInstance = plugin.createInstance()
+        if (testInstance is ConfigurablePlugin) {
+            openConfigDialog(plugin, runAfterAdd = false)
+        } else {
+            _state.update { state ->
+                if (state.stagedPlugins.any { it.pluginInfo.id == plugin.id && !it.isConfigurable }) state
+                else state.copy(
+                    stagedPlugins = state.stagedPlugins + StagedPlugin(
+                        pluginInfo = plugin,
+                        isConfigurable = false
+                    )
+                )
+            }
         }
     }
 
     // Library: add plugin to active list AND run it immediately
     private fun runPluginFromLibrary(plugin: PluginInfo) {
-        addPluginToActive(plugin)
-        state.value.selectedBot?.let { bot ->
-            pluginManager.runPlugin(plugin, bot, viewModelScope)
+        val testInstance = plugin.createInstance()
+        if (testInstance is ConfigurablePlugin) {
+            openConfigDialog(plugin, runAfterAdd = true)
+        } else {
+            val staged = StagedPlugin(pluginInfo = plugin, isConfigurable = false)
+            _state.update { state ->
+                if (state.stagedPlugins.any { it.pluginInfo.id == plugin.id && !it.isConfigurable }) state
+                else state.copy(stagedPlugins = state.stagedPlugins + staged)
+            }
+            state.value.selectedBot?.let { bot ->
+                val existing = _state.value.stagedPlugins.find {
+                    it.pluginInfo.id == plugin.id && !it.isConfigurable
+                }
+                if (existing != null) {
+                    pluginManager.runPlugin(existing, bot, viewModelScope)
+                }
+            }
         }
     }
 
     // Active list: toggle run/stop on currently selected bot
     private fun togglePluginOnSelectedBot(pluginUi: PluginsUi) {
+        val staged = pluginUi.stagedPlugin ?: return
         state.value.selectedBot?.let { bot ->
-            if (pluginManager.isRunning(pluginUi.pluginInfo.id, bot)) {
-                pluginManager.stopPlugin(pluginUi.pluginInfo.id, bot)
+            if (pluginManager.isRunning(staged.pluginInfo.id, staged.configId, bot)) {
+                pluginManager.stopPlugin(staged.pluginInfo.id, staged.configId, bot)
             } else {
-                pluginManager.runPlugin(pluginUi.pluginInfo, bot, viewModelScope)
+                pluginManager.runPlugin(staged, bot, viewModelScope)
             }
         }
     }
 
     // Stop plugin on a specific bot (from chip click)
-    private fun stopPluginOnBot(pluginId: String, botCharName: String) {
+    private fun stopPluginOnBot(pluginId: String, configId: String, botCharName: String) {
         val bot = state.value.bots.find { it.charName == botCharName } ?: return
-        pluginManager.stopPlugin(pluginId, bot)
+        pluginManager.stopPlugin(pluginId, configId, bot)
     }
 
     // Active list: remove from list (stop on ALL bots)
     private fun removeActivePlugin(pluginUi: PluginsUi) {
-        pluginManager.stopPluginOnAllBots(pluginUi.pluginInfo.id)
+        val staged = pluginUi.stagedPlugin ?: return
+        pluginManager.stopPluginOnAllBots(staged.pluginInfo.id, staged.configId)
         _state.update { state ->
-            state.copy(stagedPlugins = state.stagedPlugins.filter { it.id != pluginUi.pluginInfo.id })
+            state.copy(stagedPlugins = state.stagedPlugins.filter { it.stageKey != staged.stageKey })
         }
     }
 
     // Active list: stop all running plugins on all bots
     private fun stopAllPlugins() {
         pluginManager.stopAll()
+    }
+
+    // --- Config Dialog ---
+
+    private fun openConfigDialog(plugin: PluginInfo, runAfterAdd: Boolean) {
+        val instance = plugin.createInstance() as? ConfigurablePlugin ?: return
+        val fields = instance.configFields
+        val defaults = fields.associate { field ->
+            field.key to when (field) {
+                is ConfigField.Int -> field.defaultValue.toString()
+                is ConfigField.Text -> field.defaultValue
+                is ConfigField.Bool -> field.defaultValue.toString()
+                is ConfigField.Decimal -> field.defaultValue.toString()
+                is ConfigField.Select -> field.defaultValue
+            }
+        }
+        val existingConfigs = _state.value.stagedPlugins.filter {
+            it.pluginInfo.id == plugin.id && it.isConfigurable
+        }
+        _state.update {
+            it.copy(configDialogState = ConfigDialogState(
+                pluginInfo = plugin,
+                fields = fields,
+                values = defaults,
+                configLabel = "",
+                runAfterAdd = runAfterAdd,
+                existingConfigs = existingConfigs
+            ))
+        }
+    }
+
+    private fun editConfig(pluginUi: PluginsUi) {
+        val staged = pluginUi.stagedPlugin ?: return
+        if (!staged.isConfigurable) return
+        val instance = staged.pluginInfo.createInstance() as? ConfigurablePlugin ?: return
+
+        _state.update {
+            it.copy(configDialogState = ConfigDialogState(
+                pluginInfo = staged.pluginInfo,
+                fields = instance.configFields,
+                values = staged.configValues,
+                configLabel = staged.configLabel,
+                isEditing = true,
+                existingConfigId = staged.configId
+            ))
+        }
+    }
+
+    private fun updateConfigDialogValue(key: String, value: String) {
+        _state.update { state ->
+            val dialog = state.configDialogState ?: return@update state
+            state.copy(configDialogState = dialog.copy(values = dialog.values + (key to value)))
+        }
+    }
+
+    private fun updateConfigDialogLabel(label: String) {
+        _state.update { state ->
+            val dialog = state.configDialogState ?: return@update state
+            state.copy(configDialogState = dialog.copy(configLabel = label))
+        }
+    }
+
+    private fun copyConfigFrom(source: StagedPlugin) {
+        _state.update { state ->
+            val dialog = state.configDialogState ?: return@update state
+            state.copy(configDialogState = dialog.copy(
+                values = source.configValues,
+                configLabel = "${source.configLabel} (copy)"
+            ))
+        }
+    }
+
+    private fun confirmConfigDialog() {
+        val dialog = _state.value.configDialogState ?: return
+
+        if (dialog.isEditing && dialog.existingConfigId != null) {
+            val configId = dialog.existingConfigId
+            pluginManager.stopPluginOnAllBots(dialog.pluginInfo.id, configId)
+
+            _state.update { state ->
+                state.copy(
+                    stagedPlugins = state.stagedPlugins.map { staged ->
+                        if (staged.configId == configId) {
+                            staged.copy(
+                                configValues = dialog.values,
+                                configLabel = dialog.configLabel
+                            )
+                        } else staged
+                    },
+                    configDialogState = null
+                )
+            }
+            ConfigStorage.save(dialog.pluginInfo.id, configId, dialog.values)
+        } else {
+            val staged = StagedPlugin(
+                pluginInfo = dialog.pluginInfo,
+                configLabel = dialog.configLabel.ifBlank { "Config ${System.currentTimeMillis() % 10000}" },
+                configValues = dialog.values,
+                isConfigurable = true
+            )
+
+            _state.update { state ->
+                state.copy(
+                    stagedPlugins = state.stagedPlugins + staged,
+                    configDialogState = null
+                )
+            }
+            ConfigStorage.save(dialog.pluginInfo.id, staged.configId, dialog.values)
+
+            if (dialog.runAfterAdd) {
+                state.value.selectedBot?.let { bot ->
+                    pluginManager.runPlugin(staged, bot, viewModelScope)
+                }
+            }
+        }
+    }
+
+    private fun dismissConfigDialog() {
+        _state.update { it.copy(configDialogState = null) }
     }
 }

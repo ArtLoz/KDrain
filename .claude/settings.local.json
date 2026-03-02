@@ -21,7 +21,9 @@
       "Bash(./gradlew :composeApp:compileKotlinJvm:*)",
       "mcp__ide__getDiagnostics",
       "Bash(jar xf:*)",
-      "Bash(./gradlew composeApp:compileKotlinJvm:*)"
+      "Bash(./gradlew composeApp:compileKotlinJvm:*)",
+      "Bash(python3:*)",
+      "Bash(./gradlew :Plugins:SimpleFarm:buildPlugin:*)"
     ]
   }
 }
