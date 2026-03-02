@@ -51,7 +51,7 @@ class FarmBot(
         if (!isPetDead()) return
         log("rezPet", "pet is dead, rezzing")
         val pet = bot.petList().firstOrNull() ?: return
-        bot.setTargetId(pet.oid.toLong())
+        bot.setTargetId(pet.oid)
         delay(500)
         bot.useItemAndDelay(petRezItemId, 5_000)
         // verify
@@ -69,47 +69,39 @@ class FarmBot(
         if (path.isEmpty()) return
         val npc = town.npcServerBuffer ?: return
         log("rebuff", "start (${town::class.simpleName})")
-        var attempts = 0
-        while (isBuffEnding() && attempts < 2) {
-            bot.moveByKGpsToNpc(npc)
-            bot.targetAndConfirm(npc.id)
-            bot.openDialogAndConfirm()
-            for (index in path) {
-                bot.selectedDialogByIndex(index)
-                delay(1_000)
-            }
+        bot.moveByKGpsToNpc(npc)
+        bot.targetAndConfirm(npc.id)
+        bot.openDialogAndConfirm()
+        for (index in path) {
+            bot.selectedDialogByIndex(index)
             delay(1_000)
-            attempts++
         }
+        delay(1_000)
         log("rebuff", "done, hasBuff=${hasBuff()}")
     }
 
     suspend fun rebuffIfNeeded() {
-        if (isBuffEnding()) rebuff()
+        rebuff()
     }
 
     suspend fun rebuffPet() {
         val path = zone.petBuffDialogPath
         if (path.isEmpty() || !hasPet()) return
+        val npc = town.npcServerBuffer ?: return
         log("rebuffPet", "start")
-        var attempts = 0
-        while (isPetBuffEnding() && attempts < 2) {
-            val npc = town.npcServerBuffer ?: return
-            bot.moveByKGpsToNpc(npc)
-            bot.targetAndConfirm(npc.id)
-            bot.openDialogAndConfirm()
-            for (index in path) {
-                bot.selectedDialogByIndex(index)
-                delay(1_000)
-            }
+        bot.moveByKGpsToNpc(npc)
+        bot.targetAndConfirm(npc.id)
+        bot.openDialogAndConfirm()
+        for (index in path) {
+            bot.selectedDialogByIndex(index)
             delay(1_000)
-            attempts++
         }
+        delay(1_000)
         log("rebuffPet", "done, hasPetBuff=${hasPetBuff()}")
     }
 
     suspend fun rebuffPetIfNeeded() {
-        if (hasPet() && isPetBuffEnding()) rebuffPet()
+        if (hasPet()) rebuffPet()
     }
 
     // ---- Teleport ----
