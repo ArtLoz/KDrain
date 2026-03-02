@@ -53,7 +53,7 @@ class LogController {
         botFlow(botName).update { current ->
             (current + entry).takeLast(MAX_LOGS)
         }
-        if (_saveEnabled.value) {
+        if (_saveEnabled.value && type in _enabledTypes.value) {
             val line = "[${now.format(LogEntry.TIME_FMT)}] ${type.displayName} $message\n"
             synchronized(writeLock) {
                 if (!logsDirCreated) {

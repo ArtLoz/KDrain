@@ -53,6 +53,8 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = appName
             packageVersion = pkgVersion
+            modules("java.sql")
+
             windows{
                 version = pkgVersion
                 dirChooser = true

@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.update
 import org.shadow.kdrainpluginapi.KDrainPlugin
 import org.shadow.project.logging.LogController
 import java.io.File
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.net.URLClassLoader
 import java.util.jar.JarFile
 
@@ -34,6 +36,12 @@ class PluginManager(private val logController: LogController) {
         val instance: KDrainPlugin
     )
 
+    private fun stackTraceToString(e: Throwable): String {
+        val sw = StringWriter()
+        e.printStackTrace(PrintWriter(sw))
+        return sw.toString()
+    }
+
     fun loadPlugins() {
         if (!pluginsDir.exists() || !pluginsDir.isDirectory) {
             System.err.println("[PluginManager] Plugins directory not found: ${pluginsDir.absolutePath}")
@@ -46,7 +54,7 @@ class PluginManager(private val logController: LogController) {
 
         // Close old classloaders safely (no active plugins reference them now)
         classLoaders.forEach { cl ->
-            try { cl.close() } catch (_: Exception) {}
+            try { cl.close() } catch (_: Throwable) {}
         }
         classLoaders.clear()
 
@@ -57,8 +65,8 @@ class PluginManager(private val logController: LogController) {
             try {
                 discoverPluginClasses(jar).forEach { loaded.add(it) }
                 println("[PluginManager] Loaded: ${jar.name}")
-            } catch (e: Exception) {
-                System.err.println("[PluginManager] Failed to load ${jar.name}: ${e.message}")
+            } catch (e: Throwable) {
+                System.err.println("[PluginManager] Failed to load ${jar.name}: ${stackTraceToString(e)}")
             }
         }
 
@@ -68,8 +76,8 @@ class PluginManager(private val logController: LogController) {
                 try {
                     discoverPluginClasses(jar, dir.name).forEach { loaded.add(it) }
                     println("[PluginManager] Loaded: ${dir.name}/${jar.name}")
-                } catch (e: Exception) {
-                    System.err.println("[PluginManager] Failed to load ${dir.name}/${jar.name}: ${e.message}")
+                } catch (e: Throwable) {
+                    System.err.println("[PluginManager] Failed to load ${dir.name}/${jar.name}: ${stackTraceToString(e)}")
                 }
             }
         }
@@ -118,8 +126,8 @@ class PluginManager(private val logController: LogController) {
                     // Expected — dependency not available
                 } catch (e: NoClassDefFoundError) {
                     // Expected — transitive dependency missing
-                } catch (e: Exception) {
-                    System.err.println("[PluginManager] Error loading class $className: ${e.message}")
+                } catch (e: Throwable) {
+                    System.err.println("[PluginManager] Error loading class $className: ${stackTraceToString(e)}")
                 }
             }
         }
@@ -140,7 +148,9 @@ class PluginManager(private val logController: LogController) {
         stopPlugin(plugin.id, bot)
 
         val instance = plugin.createInstance() ?: run {
-            System.err.println("[PluginManager] Failed to create instance of ${plugin.name}")
+            val msg = "[PluginManager] Failed to create instance of ${plugin.name}"
+            System.err.println(msg)
+            logController.logError(bot.charName, msg)
             return
         }
 
@@ -155,10 +165,16 @@ class PluginManager(private val logController: LogController) {
             } catch (e: CancellationException) {
                 println("[PluginManager] Plugin cancelled: ${plugin.name} for bot: ${bot.charName}")
                 throw e
-            } catch (e: Exception) {
-                System.err.println("[PluginManager] Plugin error ${plugin.name}: ${e.message}")
+            } catch (e: Throwable) {
+                val trace = stackTraceToString(e)
+                System.err.println("[PluginManager] Plugin error ${plugin.name}: $trace")
+                logController.logError(bot.charName, "[${plugin.name}] Error: ${e::class.simpleName}: ${e.message}")
             } finally {
-                try { instance.onDisable() } catch (_: Exception) {}
+                try { instance.onDisable() } catch (e: Throwable) {
+                    val trace = stackTraceToString(e)
+                    System.err.println("[PluginManager] Plugin onDisable error ${plugin.name}: $trace")
+                    logController.logError(bot.charName, "[${plugin.name}] onDisable error: ${e::class.simpleName}: ${e.message}")
+                }
                 // Only remove if this entry is still ours (not replaced by a re-run)
                 _activePlugins.update { map ->
                     if (map[key]?.instance === instance) map - key else map

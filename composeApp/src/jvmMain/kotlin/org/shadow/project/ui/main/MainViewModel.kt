@@ -205,18 +205,19 @@ class MainViewModel(
 
     /**
      * Start user data polling for the selected bot only.
+     * TODO: temporarily disabled bot.user() to avoid transport congestion during plugin work
      */
     private fun startUserPolling(bot: L2Bot) {
         userPollingJob?.cancel()
         userPollingJob = viewModelScope.launch(Dispatchers.IO) {
             while (isActive) {
-                try {
-                    val user = bot.user()
-                    _state.update { it.copy(user = user) }
-                } catch (_: CancellationException) { throw CancellationException()
-                } catch (e: Exception) {
-                    logController.logError(bot.charName, "User poll failed: ${e.message}")
-                }
+//                try {
+//                    val user = bot.user()
+//                    _state.update { it.copy(user = user) }
+//                } catch (_: CancellationException) { throw CancellationException()
+//                } catch (e: Exception) {
+//                    logController.logError(bot.charName, "User poll failed: ${e.message}")
+//                }
                 delay(5000L)
             }
         }
